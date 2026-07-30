@@ -1,0 +1,139 @@
+// Gerçek Kozmetik — Nakit & Tahsilat Kontrol Sistemi
+// Prisma 7: datasource bloğunda "url" YOK; bağlantı prisma.config.ts'te tanımlı.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Cari hesap segmenti — raporlarda kırılım için kullanılır.
+enum Segment {
+  BAYI
+  ZINCIR
+  ECZANE
+  ONLINE
+  IHRACAT
+}
+
+enum FaturaDurum {
+  ACIK
+  KISMI
+  ODENDI
+}
+
+enum OdemeYontem {
+  HAVALE
+  KREDI_KARTI
+  CEK
+  NAKIT
+  SENET
+}
+
+// Bilgilendirme kanalı — müşterinin mevcut sistemi bu 4 kanaldan gönderim yapıyor.
+enum Kanal {
+  SMS
+  WHATSAPP
+  EMAIL
+  CALL
+}
+
+enum BildirimDurum {
+  GONDERILDI
+  ILETILDI
+  OKUNDU
+  BASARISIZ
+  CEVAPLANDI
+  CEVAPSIZ
+}
+
+// Panele giriş yapan iç kullanıcılar (salt-okunur demo).
+model User {
+  id           String   @id @default(cuid())
+  kullaniciAdi String   @unique
+  adSoyad      String
+  unvan        String
+  sifreHash    String
+  olusturmaTarihi DateTime @default(now())
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  kod         String   @unique // CH-0001 formatı
+  ad          String
+  sehir       String
+  segment     Segment
+  telefon     String
+  email       String
+  temsilci    String
+  krediLimiti Decimal  @db.Decimal(14, 2)
+  vadeGunu    Int // sözleşmedeki ödeme vadesi (gün)
+  aktif       Boolean  @default(true)
+
+  faturalar  Invoice[]
+  tahsilatlar Payment[]
+  bildirimler Reminder[]
+
+  @@index([segment])
+  @@index([sehir])
+}
+
+model Invoice {
+  id           String      @id @default(cuid())
+  customerId   String
+  customer     Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  faturaNo     String      @unique
+  kesimTarihi  DateTime
+  vadeTarihi   DateTime
+  tutar        Decimal     @db.Decimal(14, 2)
+  odenenTutar  Decimal     @default(0) @db.Decimal(14, 2)
+  durum        FaturaDurum @default(ACIK)
+  // Faturanın tamamen kapandığı tarih. "Ne zaman ödedi" ve
+  // "kaç gün gecikmeyle ödedi" sorularının tek kaynağı budur.
+  kapanmaTarihi DateTime?
+
+  tahsilatlar Payment[]
+  bildirimler Reminder[]
+
+  @@index([customerId])
+  @@index([vadeTarihi])
+  @@index([durum])
+}
+
+model Payment {
+  id           String      @id @default(cuid())
+  customerId   String
+  customer     Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  invoiceId    String?
+  invoice      Invoice?    @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  odemeTarihi  DateTime
+  tutar        Decimal     @db.Decimal(14, 2)
+  yontem       OdemeYontem
+  aciklama     String?
+
+  @@index([customerId])
+  @@index([odemeTarihi])
+}
+
+model Reminder {
+  id             String        @id @default(cuid())
+  customerId     String
+  customer       Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  invoiceId      String?
+  invoice        Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  kanal          Kanal
+  gonderimZamani DateTime
+  durum          BildirimDurum
+  // Gönderim ANINDAKİ gecikme günü. Denormalize tutuluyor çünkü fatura sonradan
+  // ödendiğinde bu değer geriye dönük hesaplanamaz — "kaç gün gecikmede hangi
+  // kanal işe yarıyor" analizinin tek dayanağı bu alan.
+  gonderimdekiGecikmeGunu Int
+  sablon         String
+
+  @@index([customerId])
+  @@index([gonderimZamani])
+  @@index([kanal])
+}

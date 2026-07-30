@@ -1,0 +1,393 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   "KASA DEFTERİ" — Gerçek Kozmetik Nakit & Tahsilat Kontrol Sistemi
+   ───────────────────────────────────────────────────────────────────────────
+   Tasarım dili: finansal broadsheet. Kurumsal ağırlık dekordan değil
+   TİPOGRAFİ ve ÇİZGİDEN gelir.
+
+   Üç yasak:
+     1. Gölge yok — ayrımlar 1px saç çizgisiyle yapılır
+     2. Yuvarlak köşe yok (max 2px) — kart değil, çizgiyle ayrılmış alan
+     3. Dekoratif renk yok — renk yalnızca DURUM sinyalidir
+
+   Palet WCAG AA için ölçüldü: tüm metin renkleri hem --paper hem --paper-2
+   üzerinde ≥4.5:1 kontrast verir.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* Zemin: soğuk beyaz değil, sıcak kağıt tonu */
+  --color-paper: #faf9f5;
+  --color-paper-2: #f3f1ea; /* bölüm dolgusu / tablo başlığı */
+  --color-paper-3: #ebe8df; /* seçili satır */
+
+  /* Mürekkep skalası — ölçülen kontrast (paper-2 / paper) */
+  --color-ink: #15171b; /* 15.9 / 17.0 */
+  --color-ink-soft: #4a4e57; /*  7.4 /  7.9 */
+  --color-ink-mute: #686d75; /*  4.6 /  4.9 */
+
+  /* Saç çizgileri — yapının tamamı bunlardan doğar */
+  --color-rule: rgb(21 23 27 / 0.13);
+  --color-rule-strong: rgb(21 23 27 / 0.32);
+
+  /* Sinyal renkleri — SADECE durum için, dekorasyon için asla */
+  --color-ok: #1f6b4a; /* zamanında / ödendi     6.1 */
+  --color-warn: #8a6410; /* 1-30 gün gecikme      5.1 */
+  --color-alert: #aa4c19; /* 31-60 gün gecikme     5.3 */
+  --color-crit: #97231c; /* 60+ gün gecikme       7.8 */
+
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+/* ───────────────────────────── Temel ───────────────────────────── */
+
+html {
+  /* Mobilde okunabilirlik kuralı: gövde metni 16px'in altına inmez.
+     Masaüstünde veri yoğunluğu için 15px'e çekilir. */
+  font-size: 16px;
+  background: var(--color-paper);
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Rakamlar her zaman mono ve tabular — finans tablosunda hizalama şart.
+   font-variant-numeric olmadan sayılar sütun içinde kayar. */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Klavye erişimi: outline asla karşılığı olmadan kaldırılmaz. */
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  border-radius: 1px;
+}
+
+/* Hareket hassasiyeti olan kullanıcılar için tüm geçişler kapanır. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* ──────────────────────── Tipografik öğeler ──────────────────────── */
+
+/* Bölüm başlığı: etiket değil, editoryal üst başlık.
+   Küçük punto + geniş harf aralığı. */
+.lbl {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-mute);
+}
+
+/* Bölüm başlığı satırı — altından güçlü saç çizgi geçer. */
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-rule-strong);
+  margin-bottom: 0.875rem;
+}
+
+/* Sayfa/bölüm alanı — kutu değil, çizgiyle sınırlanmış alan. */
+.panel {
+  border: 1px solid var(--color-rule);
+  background: var(--color-paper);
+  padding: 1.125rem 1.25rem 1.25rem;
+}
+
+/* ───────────────────────────── KPI ─────────────────────────────
+   Rakam ana görsel öğedir. Grafik değil, sayının kendisi bakılan şey. */
+
+.kpi-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+  /* Üst sınır KPI kuşağının 3 sütun genişliğine göre ayarlı: daha büyüğü
+     "₺44,1 M" gibi 7 karakterlik mono değerleri kırpıyor. */
+  font-size: clamp(1.875rem, 3.4vw, 2.75rem);
+  color: var(--color-ink);
+}
+
+/* Sayfanın birincil rakamı — daha da büyük. */
+.kpi-num-lg {
+  font-size: clamp(2.375rem, 4.6vw, 3.625rem);
+}
+
+.kpi-sub {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-ink-mute);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ──────────────────────────── Tablolar ────────────────────────────
+   Zebra yok — ayrımlar saç çizgiyle. Yoğun ama havalanabilir. */
+
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .tbl {
+    font-size: 0.8125rem;
+  }
+}
+
+.tbl thead th {
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-ink-mute);
+  padding: 0.5rem 0.625rem;
+  border-bottom: 1px solid var(--color-rule-strong);
+  white-space: nowrap;
+}
+
+.tbl tbody td {
+  padding: 0.5rem 0.625rem;
+  border-bottom: 1px solid var(--color-rule);
+  vertical-align: baseline;
+}
+
+.tbl tbody tr:hover {
+  background: var(--color-paper-2);
+}
+
+.tbl .sag {
+  text-align: right;
+}
+
+/* Geniş tablolar kendi içinde kayar — sayfa gövdesi yatay kaymaz. */
+.tbl-kaydir {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Kaydırma kabındaki tablo içeriği kadar genişler: dar ekranda SIKIŞMAK yerine
+   kayar ("Nazar Perakende A.Ş." üç satıra bölünmez). Sabit bir min-width vermek
+   yanlıştı — 4 sütunlu özet tablolarını da gereksiz kaydırıyordu. max-content
+   ile geniş tablolar kayar, dar tablolar olduğu gibi sığar. */
+.tbl-kaydir .tbl {
+  min-width: max-content;
+}
+
+/* ─────────────────────── Durum göstergesi ───────────────────────
+   Renkli chip YOK. Küçük büyük-harf etiket + solunda 2px dikey çentik.
+   Durum asla yalnız renkle anlatılmaz: etiket metni her zaman okunur —
+   hem ekran okuyucu hem de PDF'in gri basılması için. */
+
+.tick {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tick::before {
+  content: "";
+  width: 2px;
+  height: 0.875em;
+  background: currentColor;
+  flex: none;
+}
+
+.t-ok { color: var(--color-ok); }
+.t-warn { color: var(--color-warn); }
+.t-alert { color: var(--color-alert); }
+.t-crit { color: var(--color-crit); }
+.t-mute { color: var(--color-ink-mute); }
+
+/* ──────────────── İmza öğesi: RİSK ŞERİDİ ────────────────
+   Yaşlandırma, sayfa genişliğinde tek sürekli şerit olarak okunur.
+   Ayrı ayrı bar chart yerine tek bakışta kavranan bir bütün. */
+
+.riskband {
+  display: flex;
+  width: 100%;
+  border: 1px solid var(--color-rule-strong);
+  overflow: hidden;
+  /* Dar ekranda 5 bölmeye metin sığmıyor: şerit ince bir oran çubuğuna iner,
+     rakamlar hemen altındaki tablodan okunur. Bilgi kaybı yok. */
+  height: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .riskband {
+    height: 3rem;
+  }
+}
+
+.riskband-seg {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 0.625rem;
+  border-right: 1px solid var(--color-rule-strong);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.riskband-seg:last-child {
+  border-right: none;
+}
+
+/* Metinler yalnızca şerit tam yüksekliğe çıktığında görünür. */
+.rb-tutar,
+.rb-etiket {
+  display: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 640px) {
+  .rb-tutar,
+  .rb-etiket {
+    display: block;
+  }
+}
+
+.rb-tutar {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.rb-etiket {
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-mute);
+}
+
+/* Dolgu, sinyal renginin çok açık tonu — yazı mürekkep kalır, okunurluk düşmez. */
+.rb-ok { background: rgb(31 107 74 / 0.09); }
+.rb-warn { background: rgb(138 100 16 / 0.11); }
+.rb-alert { background: rgb(170 76 25 / 0.12); }
+.rb-crit { background: rgb(151 35 28 / 0.13); }
+
+/* ───────────────────────── Etkileşim ─────────────────────────
+   Dokunma hedefi minimum 44px. Geçişler 150-200ms. */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 0.9375rem;
+  border: 1px solid var(--color-rule-strong);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color 180ms, border-color 180ms, color 180ms;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Birincil eylem — dolu mürekkep. */
+.btn-ink {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.btn-ink:hover:not(:disabled) {
+  background: var(--color-ink-soft);
+  border-color: var(--color-ink-soft);
+  color: var(--color-paper);
+}
+
+/* ──────────────────────── Form öğeleri ──────────────────────── */
+
+.input,
+.select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-rule-strong);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+}
+
+/* Yerel ok işareti korunur — özel ok çizmek erişilebilirliği bozar. */
+.select {
+  cursor: pointer;
+}
+
+/* ─────────────────────── Navigasyon rayı ───────────────────────
+   Dolgulu sidebar paneli değil: saç çizgiyle ayrılmış ince ray.
+   Aktif öğe yuvarlak pill değil, solunda 3px dolu mürekkep bloğu. */
+
+.rail-link {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 0.875rem 0 0.8125rem;
+  border-left: 3px solid transparent;
+  color: var(--color-ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: color 180ms, background-color 180ms;
+}
+
+.rail-link:hover {
+  color: var(--color-ink);
+  background: var(--color-paper-2);
+}
+
+.rail-link[data-aktif="true"] {
+  border-left-color: var(--color-ink);
+  color: var(--color-ink);
+  font-weight: 600;
+  background: var(--color-paper-2);
+}
