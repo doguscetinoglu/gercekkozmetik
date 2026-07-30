@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { SectionHeader } from '@/components/PageHeader'
 import Kpi, { KpiKusak } from '@/components/Kpi'
 import PdfButton from '@/components/PdfButton'
 import RiskBand from '@/components/RiskBand'
@@ -94,7 +95,7 @@ export default function YaslandirmaRapor({ veri }: { veri: Veri }) {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
       <div className="flex justify-end">
         <PdfButton rapor={rapor} etiket="Yaşlandırma Raporu İndir" birincil />
       </div>
@@ -113,16 +114,12 @@ export default function YaslandirmaRapor({ veri }: { veri: Veri }) {
       </KpiKusak>
 
       <div>
-        <div className="panel-head">
-          <h3 className="lbl">Risk Şeridi</h3>
-        </div>
+        <SectionHeader baslik={"Risk Şeridi"} />
         <RiskBand kovalar={kovalar} />
       </div>
 
       <div>
-        <div className="panel-head">
-          <h3 className="lbl">Segment Kırılımı</h3>
-        </div>
+        <SectionHeader baslik={"Segment Kırılımı"} />
         <div className="tbl-kaydir">
           <table className="tbl">
             <thead>
@@ -150,14 +147,14 @@ export default function YaslandirmaRapor({ veri }: { veri: Veri }) {
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t-2 border-rule-strong font-semibold">
-                <td className="pt-2">TOPLAM</td>
-                <td className="sag num pt-2">
+              <tr>
+                <td>TOPLAM</td>
+                <td className="sag num">
                   {sayi(segmentSatirlari.reduce((t, s) => t + s.cariAdedi, 0))}
                 </td>
-                <td className="sag num pt-2">{tl(ozet.acikBakiye)}</td>
-                <td className="sag num pt-2">{tl(ozet.vadesiGecen)}</td>
-                <td className="sag num pt-2">{ozet.agirlikliGecikmeGunu} gün</td>
+                <td className="sag num">{tl(ozet.acikBakiye)}</td>
+                <td className="sag num">{tl(ozet.vadesiGecen)}</td>
+                <td className="sag num">{ozet.agirlikliGecikmeGunu} gün</td>
               </tr>
             </tfoot>
           </table>
@@ -165,10 +162,7 @@ export default function YaslandirmaRapor({ veri }: { veri: Veri }) {
       </div>
 
       <div>
-        <div className="panel-head">
-          <h3 className="lbl">Vadesi Geçen Bakiyesi Olan Cariler</h3>
-          <span className="num text-xs text-ink-mute">{sayi(cariSatirlari.length)} cari</span>
-        </div>
+        <SectionHeader baslik={"Vadesi Geçen Bakiyesi Olan Cariler"} yan={<span className="num kpi-sub">{sayi(cariSatirlari.length)} cari</span>} />
         <div className="tbl-kaydir">
           <table className="tbl">
             <thead>
@@ -189,13 +183,13 @@ export default function YaslandirmaRapor({ veri }: { veri: Veri }) {
                   <td>
                     <Link
                       href={`/cariler/${c.id}`}
-                      className="font-medium underline underline-offset-4 decoration-rule-strong hover:decoration-ink"
+                      className="baglanti"
                     >
                       {c.ad}
                     </Link>
                   </td>
-                  <td className="text-ink-soft">{segmentAdi(c.segment)}</td>
-                  <td className="text-ink-soft">{c.temsilci}</td>
+                  <td className="text-label-2">{segmentAdi(c.segment)}</td>
+                  <td className="text-label-2">{c.temsilci}</td>
                   <td className="sag num">{tl(c.acikBakiye)}</td>
                   <td className="sag num font-medium">{tl(c.vadesiGecen)}</td>
                   <td className="sag">
@@ -209,7 +203,7 @@ export default function YaslandirmaRapor({ veri }: { veri: Veri }) {
           </table>
         </div>
         {cariSatirlari.length > 50 && (
-          <p className="mt-2 text-xs text-ink-mute">
+          <p className="mt-2 kpi-sub">
             En yüksek 50 cari gösteriliyor; tamamı ({sayi(cariSatirlari.length)} cari) PDF raporunda.
           </p>
         )}

@@ -1,4 +1,5 @@
 import Kpi, { KpiKusak } from '@/components/Kpi'
+import { SectionHeader } from '@/components/PageHeader'
 import PdfButton from '@/components/PdfButton'
 import { sayi, segmentAdi, tarih, tl, tlKisa, yuzde } from '@/lib/format'
 import { riskSinifi } from '@/lib/metrics'
@@ -85,7 +86,7 @@ export default function PerformansRapor({ veri }: { veri: Veri }) {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
       <form className="flex flex-wrap items-end gap-3">
         <input type="hidden" name="rapor" value="performans" />
         <div>
@@ -126,46 +127,43 @@ export default function PerformansRapor({ veri }: { veri: Veri }) {
       </KpiKusak>
 
       <div>
-        <div className="panel-head">
-          <h3 className="lbl">Satış Temsilcisi Kırılımı</h3>
-          <span className="num text-xs text-ink-mute">{tl(veri.donemTahsilat)}</span>
+        <SectionHeader baslik={"Satış Temsilcisi Kırılımı"} yan={<span className="num kpi-sub">{tl(veri.donemTahsilat)}</span>} />
+        <div className="tbl-kaydir">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th scope="col">Temsilci</th>
+                <th scope="col" className="sag">Tahsilat</th>
+                <th scope="col" className="sag">Pay</th>
+                <th scope="col" className="w-2/5">Dağılım</th>
+              </tr>
+            </thead>
+            <tbody>
+              {veri.temsilciler.map((t) => {
+                const pay = veri.donemTahsilat === 0 ? 0 : (t.tutar / veri.donemTahsilat) * 100
+                return (
+                  <tr key={t.temsilci}>
+                    <td className="font-medium">{t.temsilci}</td>
+                    <td className="sag num">{tl(t.tutar)}</td>
+                    <td className="sag num">{yuzde(pay)}</td>
+                    <td>
+                      <span
+                        className="oran"
+                        style={{ width: `${Math.max(pay, 1)}%` }}
+                        aria-hidden="true"
+                      />
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
-        <table className="tbl">
-          <thead>
-            <tr>
-              <th scope="col">Temsilci</th>
-              <th scope="col" className="sag">Tahsilat</th>
-              <th scope="col" className="sag">Pay</th>
-              <th scope="col" className="w-2/5">Dağılım</th>
-            </tr>
-          </thead>
-          <tbody>
-            {veri.temsilciler.map((t) => {
-              const pay = veri.donemTahsilat === 0 ? 0 : (t.tutar / veri.donemTahsilat) * 100
-              return (
-                <tr key={t.temsilci}>
-                  <td className="font-medium">{t.temsilci}</td>
-                  <td className="sag num">{tl(t.tutar)}</td>
-                  <td className="sag num">{yuzde(pay)}</td>
-                  <td>
-                    <span
-                      className="block h-2 bg-ink/70"
-                      style={{ width: `${Math.max(pay, 1)}%` }}
-                      aria-hidden="true"
-                    />
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
       </div>
 
-      <div className="grid gap-7 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <div>
-          <div className="panel-head">
-            <h3 className="lbl">En İyi Ödeme Disiplini</h3>
-          </div>
+          <SectionHeader baslik={"En İyi Ödeme Disiplini"} />
           <div className="tbl-kaydir">
             <table className="tbl">
               <thead>
@@ -193,9 +191,7 @@ export default function PerformansRapor({ veri }: { veri: Veri }) {
         </div>
 
         <div>
-          <div className="panel-head">
-            <h3 className="lbl">En Kötü Ödeme Disiplini</h3>
-          </div>
+          <SectionHeader baslik={"En Kötü Ödeme Disiplini"} />
           <div className="tbl-kaydir">
             <table className="tbl">
               <thead>
@@ -226,10 +222,7 @@ export default function PerformansRapor({ veri }: { veri: Veri }) {
       </div>
 
       <div>
-        <div className="panel-head">
-          <h3 className="lbl">Dönem Tahsilatı — Cari Bazında</h3>
-          <span className="num text-xs text-ink-mute">{sayi(veri.cariSatirlari.length)} cari</span>
-        </div>
+        <SectionHeader baslik={"Dönem Tahsilatı — Cari Bazında"} yan={<span className="num kpi-sub">{sayi(veri.cariSatirlari.length)} cari</span>} />
         <div className="tbl-kaydir">
           <table className="tbl">
             <thead>
@@ -248,8 +241,8 @@ export default function PerformansRapor({ veri }: { veri: Veri }) {
                 <tr key={c.kod}>
                   <td className="num">{c.kod}</td>
                   <td>{c.ad}</td>
-                  <td className="text-ink-soft">{segmentAdi(c.segment)}</td>
-                  <td className="text-ink-soft">{c.temsilci}</td>
+                  <td className="text-label-2">{segmentAdi(c.segment)}</td>
+                  <td className="text-label-2">{c.temsilci}</td>
                   <td className="sag num">{sayi(c.kapananFatura)}</td>
                   <td className="sag num">
                     {c.ortGecikme === null ? '—' : `${c.ortGecikme} gün`}
@@ -259,17 +252,17 @@ export default function PerformansRapor({ veri }: { veri: Veri }) {
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t-2 border-rule-strong font-semibold">
-                <td colSpan={4} className="pt-2">TOPLAM</td>
-                <td className="sag num pt-2">{sayi(veri.kapananFatura)}</td>
+              <tr>
+                <td colSpan={4} >TOPLAM</td>
+                <td className="sag num">{sayi(veri.kapananFatura)}</td>
                 <td />
-                <td className="sag num pt-2">{tl(veri.donemTahsilat)}</td>
+                <td className="sag num">{tl(veri.donemTahsilat)}</td>
               </tr>
             </tfoot>
           </table>
         </div>
         {veri.cariSatirlari.length > 50 && (
-          <p className="mt-2 text-xs text-ink-mute">
+          <p className="mt-2 kpi-sub">
             İlk 50 cari gösteriliyor; tamamı PDF raporunda.
           </p>
         )}

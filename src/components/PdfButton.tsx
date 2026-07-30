@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { raporIndir, type PdfRapor } from '@/lib/pdf/report'
+import { IkonIndir } from './icons'
 
 /**
  * Her sayfada aynı PDF butonu.
@@ -49,14 +50,7 @@ export default function PdfButton({
         className={birincil ? 'btn btn-ink' : 'btn'}
         aria-busy={uretiliyor}
       >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path
-            d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="square"
-          />
-        </svg>
+        <IkonIndir boyut={16} />
         {uretiliyor ? 'Hazırlanıyor…' : etiket}
       </button>
     </div>

@@ -1,4 +1,5 @@
 import Kpi, { KpiKusak } from '@/components/Kpi'
+import { SectionHeader } from '@/components/PageHeader'
 import PdfButton from '@/components/PdfButton'
 import { durumAdi, kanalAdi, sayi, tarih, tl, tlKisa, yuzde } from '@/lib/format'
 import { etkinlikRaporu } from '@/lib/queries'
@@ -94,7 +95,7 @@ export default function EtkinlikRapor({ veri }: { veri: Veri }) {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
       <form className="flex flex-wrap items-end gap-3">
         <input type="hidden" name="rapor" value="etkinlik" />
         <div>
@@ -124,9 +125,7 @@ export default function EtkinlikRapor({ veri }: { veri: Veri }) {
       </KpiKusak>
 
       <div>
-        <div className="panel-head">
-          <h3 className="lbl">Kanal Bazında Etkinlik</h3>
-        </div>
+        <SectionHeader baslik={"Kanal Bazında Etkinlik"} />
         <div className="tbl-kaydir">
           <table className="tbl">
             <thead>
@@ -151,7 +150,7 @@ export default function EtkinlikRapor({ veri }: { veri: Veri }) {
                   <td className="sag num">{k.ortTahsilGunu} gün</td>
                   <td>
                     <span
-                      className="block h-2 bg-ink/70"
+                      className="oran"
                       style={{ width: `${Math.min(k.donusumOrani * 2, 100)}%` }}
                       aria-hidden="true"
                     />
@@ -160,12 +159,12 @@ export default function EtkinlikRapor({ veri }: { veri: Veri }) {
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t-2 border-rule-strong font-semibold">
-                <td className="pt-2">TOPLAM</td>
-                <td className="sag num pt-2">{sayi(veri.toplamBildirim)}</td>
-                <td className="sag num pt-2">{sayi(toplamDonusen)}</td>
-                <td className="sag num pt-2">{yuzde(genelDonusum)}</td>
-                <td className="sag num pt-2">{tl(toplamAtfedilen)}</td>
+              <tr>
+                <td>TOPLAM</td>
+                <td className="sag num">{sayi(veri.toplamBildirim)}</td>
+                <td className="sag num">{sayi(toplamDonusen)}</td>
+                <td className="sag num">{yuzde(genelDonusum)}</td>
+                <td className="sag num">{tl(toplamAtfedilen)}</td>
                 <td colSpan={2} />
               </tr>
             </tfoot>
@@ -173,68 +172,68 @@ export default function EtkinlikRapor({ veri }: { veri: Veri }) {
         </div>
       </div>
 
-      <div className="grid gap-7 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <div>
-          <div className="panel-head">
-            <h3 className="lbl">Gecikme Aralığına Göre Etkinlik</h3>
-          </div>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th scope="col">Gönderim Anındaki Gecikme</th>
-                <th scope="col" className="sag">Gönderim</th>
-                <th scope="col" className="sag">Dönüşüm</th>
-                <th scope="col" className="sag">Atfedilen</th>
-              </tr>
-            </thead>
-            <tbody>
-              {veri.aralikSatirlari.map((a) => (
-                <tr key={a.etiket}>
-                  <td className="font-medium">{a.etiket}</td>
-                  <td className="sag num">{sayi(a.gonderim)}</td>
-                  <td className="sag num font-medium">{yuzde(a.donusumOrani)}</td>
-                  <td className="sag num">{tlKisa(a.atfedilenTutar)}</td>
+          <SectionHeader baslik={"Gecikme Aralığına Göre Etkinlik"} />
+          <div className="tbl-kaydir">
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th scope="col">Gönderim Anındaki Gecikme</th>
+                  <th scope="col" className="sag">Gönderim</th>
+                  <th scope="col" className="sag">Dönüşüm</th>
+                  <th scope="col" className="sag">Atfedilen</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {veri.aralikSatirlari.map((a) => (
+                  <tr key={a.etiket}>
+                    <td className="font-medium">{a.etiket}</td>
+                    <td className="sag num">{sayi(a.gonderim)}</td>
+                    <td className="sag num font-medium">{yuzde(a.donusumOrani)}</td>
+                    <td className="sag num">{tlKisa(a.atfedilenTutar)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div>
-          <div className="panel-head">
-            <h3 className="lbl">Teslim Durumu Dağılımı</h3>
-          </div>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th scope="col">Sonuç</th>
-                <th scope="col" className="sag">Adet</th>
-                <th scope="col" className="sag">Pay</th>
-              </tr>
-            </thead>
-            <tbody>
-              {veri.durumlar.map((d) => (
-                <tr key={d.durum}>
-                  <td>
-                    <span
-                      className={`tick ${
-                        d.durum === 'BASARISIZ' || d.durum === 'CEVAPSIZ' ? 't-crit' : 't-ok'
-                      }`}
-                    >
-                      {durumAdi(d.durum)}
-                    </span>
-                  </td>
-                  <td className="sag num">{sayi(d.adet)}</td>
-                  <td className="sag num">{yuzde((d.adet / veri.toplamBildirim) * 100)}</td>
+          <SectionHeader baslik={"Teslim Durumu Dağılımı"} />
+          <div className="tbl-kaydir">
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th scope="col">Sonuç</th>
+                  <th scope="col" className="sag">Adet</th>
+                  <th scope="col" className="sag">Pay</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {veri.durumlar.map((d) => (
+                  <tr key={d.durum}>
+                    <td>
+                      <span
+                        className={`tick ${
+                          d.durum === 'BASARISIZ' || d.durum === 'CEVAPSIZ' ? 't-crit' : 't-ok'
+                        }`}
+                      >
+                        {durumAdi(d.durum)}
+                      </span>
+                    </td>
+                    <td className="sag num">{sayi(d.adet)}</td>
+                    <td className="sag num">{yuzde((d.adet / veri.toplamBildirim) * 100)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       {/* Metodoloji uyarısı ekranda da görünür — PDF'e hapsedilmez. */}
-      <p className="border-l-3 border-rule-strong bg-paper-2 px-4 py-3 text-xs leading-relaxed text-ink-soft">
+      <p className="grup text-[0.8125rem] leading-relaxed text-label-2">
         <strong className="font-semibold">Yöntem:</strong> Her tahsilat, kendisinden önceki 5 gün
         içinde aynı cariye gönderilmiş <em>en son</em> bildirime atfedilir. Bu bir korelasyon
         ölçümüdür; müşteri bildirimden bağımsız olarak da ödeme yapmış olabilir.

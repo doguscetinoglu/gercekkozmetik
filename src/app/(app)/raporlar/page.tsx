@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import PageHeader, { SectionHeader } from '@/components/PageHeader'
 import { BUGUN } from '@/lib/brand'
 import { gunAnahtari } from '@/lib/format'
 import {
@@ -44,43 +45,33 @@ export default async function RaporlarSayfasi(props: {
   const aktif = RAPORLAR.find((r) => r.anahtar === secili)!
 
   return (
-    <div className="space-y-7">
-      <div>
-        <span className="lbl block">Rapor Merkezi</span>
-        <h1 className="mt-1 text-xl font-semibold">Hazır Raporlar</h1>
-        <p className="mt-1 max-w-2xl text-sm text-ink-soft">
-          Her rapor ekranda görüntülenir ve aynı verilerle PDF olarak indirilir.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        ustEtiket="Rapor merkezi"
+        baslik="Hazır Raporlar"
+        aciklama="Her rapor ekranda görüntülenir ve aynı verilerle PDF olarak indirilir."
+      />
 
-      {/* Rapor seçimi — sekme değil, saç çizgiyle ayrılmış dört alan */}
-      <nav aria-label="Rapor seçimi" className="grid divide-y divide-rule border-y border-rule-strong sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
-        {RAPORLAR.map((r) => {
-          const isAktif = r.anahtar === secili
-          return (
+      {/* Rapor seçimi — Apple'ın segmentli kontrolü. Yatay kaydırma kabı
+          içinde, çünkü dört etiket dar ekranda sığmıyor. */}
+      <nav aria-label="Rapor seçimi" className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
+        <div className="seg w-max">
+          {RAPORLAR.map((r) => (
             <Link
               key={r.anahtar}
               href={`/raporlar?rapor=${r.anahtar}&gun=${gun}&baslangic=${baslangic}&bitis=${bitis}`}
-              aria-current={isAktif ? 'page' : undefined}
-              className={`block border-l-3 px-4 py-3.5 transition-colors ${
-                isAktif
-                  ? 'border-l-ink bg-paper-2'
-                  : 'border-l-transparent hover:bg-paper-2'
-              }`}
+              aria-current={r.anahtar === secili ? 'page' : undefined}
+              data-aktif={r.anahtar === secili}
+              className="seg-oge"
             >
-              <span className={`block text-sm ${isAktif ? 'font-semibold' : 'font-medium text-ink-soft'}`}>
-                {r.ad}
-              </span>
-              <span className="mt-1 block text-xs leading-snug text-ink-mute">{r.aciklama}</span>
+              {r.ad}
             </Link>
-          )
-        })}
+          ))}
+        </div>
       </nav>
 
       <section>
-        <div className="panel-head">
-          <h2 className="lbl">{aktif.ad} Raporu</h2>
-        </div>
+        <SectionHeader baslik={`${aktif.ad} raporu`} yan={<span className="lbl">{aktif.aciklama}</span>} />
 
         {secili === 'gunluk' && <GunlukRapor veri={await gunlukFaaliyet(gun)} />}
         {secili === 'yaslandirma' && <YaslandirmaRapor veri={await yaslandirmaRaporu()} />}

@@ -51,12 +51,28 @@ tahsilatı kendine yazar ve dilim oranlarının toplamı genel oranı aşar.
 bu yüzden IBM Plex alt kümesi base64 olarak gömülür (`src/lib/pdf/font-*.ts`, `await import()`
 ile tembel yüklenir — 147KB ilk PDF tıklamasına kadar bundle'a girmez).
 
-### Tasarım dili — "Kasa Defteri"
+### Tasarım dili — Apple
 
-Finansal broadsheet: gölge yok, yuvarlak köşe yok, dekoratif renk yok. Yapı 1px saç
-çizgilerinden gelir; hiyerarşi tipografiyle kurulur. Rakamlar IBM Plex Mono ve `tabular-nums`.
-Renk yalnızca **durum sinyali** taşır (zamanında / 1-30 / 31-60 / 60+) ve durum asla yalnız
-renkle anlatılmaz — her zaman yanında metin etiketi vardır. Palet WCAG AA için ölçülmüştür.
+Nötr gri skala + tek canlı vurgu (sistem mavisi), cömert boşluk, yumuşak yuvarlaklık ve çok
+hafif gölge. Masaüstünde macOS kenar çubuğu, mobilde iOS sekme çubuğu. İkonlar SF Symbols
+dilinde çizilmiştir (`src/components/icons.tsx`); emoji ikon kullanılmaz.
+
+Tipografi Apple cihazlarda gerçek SF Pro (`-apple-system`), diğerlerinde Inter. Rakamlar
+`tabular-nums` + sıkı tracking ile dizilir; **mono font kullanılmaz** (Apple kullanmaz).
+
+Renk yalnızca **anlam** taşır: vurgu = etkileşim, sinyal = durum (zamanında / 1-30 / 31-60 /
+60+). Durum asla yalnız renkle anlatılmaz — her zaman metin etiketi vardır.
+
+Palet WCAG AA için ölçülmüştür ve üç sonuç koda bağlıdır:
+
+- `--color-label-3` (#86868B) hiçbir zeminde 4.5:1 geçmez → **metin için kullanılmaz**,
+  yalnızca ikon/ayraç gibi grafik öğelerde (≥3:1 yeterli).
+- Dört sinyal rengi kendi %12 tint'i üzerinde 4.52-5.07 verir → durum kapsülleri güvenli.
+- `--color-accent` (#0071E3) kendi tint'inde 3.98 → tint üzerinde metin rengi olarak
+  kullanılmaz, `--color-accent-deep` kullanılır.
+
+> ⚠️ `.tbl tbody td` kuralına **`color` yazılmaz**. Özgüllüğü (0,1,2) `.text-label-2` gibi
+> utility sınıflarını (0,1,0) ezer ve hücrelerdeki tüm renk sınıfları sessizce iptal olur.
 
 ## Kurulum
 

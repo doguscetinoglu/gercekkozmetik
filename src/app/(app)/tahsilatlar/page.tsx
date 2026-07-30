@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import PageHeader, { SectionHeader } from '@/components/PageHeader'
 import Kpi, { KpiKusak } from '@/components/Kpi'
 import PdfButton from '@/components/PdfButton'
 import { BUGUN } from '@/lib/brand'
@@ -104,14 +105,13 @@ export default async function TahsilatlarSayfasi(props: {
   }
 
   return (
-    <div className="space-y-7">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <span className="lbl block">Gelen Ödemeler</span>
-          <h1 className="mt-1 text-xl font-semibold">{sayi(v.toplam)} tahsilat</h1>
-        </div>
-        <PdfButton rapor={rapor} etiket="Tahsilat Raporu (PDF)" />
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        ustEtiket="Gelen ödemeler"
+        baslik={`${sayi(v.toplam)} tahsilat`}
+        aciklama="Ödeme yöntemi dağılımı ve günlük tahsilat seyri"
+        eylemler={<PdfButton rapor={rapor} etiket="Raporu indir" />}
+      />
 
       <KpiKusak>
         <Kpi etiket="Genel Toplam" deger={tlKisa(v.genelToplam)} alt="tüm dönem" buyuk sinif="ok" />
@@ -124,10 +124,7 @@ export default async function TahsilatlarSayfasi(props: {
       </KpiKusak>
 
       <section>
-        <div className="panel-head">
-          <h2 className="lbl">Ödeme Yöntemine Göre Dağılım</h2>
-          <span className="num text-xs text-ink-mute">{tl(v.genelToplam)}</span>
-        </div>
+        <SectionHeader baslik={"Ödeme Yöntemine Göre Dağılım"} yan={<span className="num kpi-sub">{tl(v.genelToplam)}</span>} />
         <div className="tbl-kaydir">
           <table className="tbl">
             <thead>
@@ -151,7 +148,7 @@ export default async function TahsilatlarSayfasi(props: {
                     <td>
                       {/* Yatay oran çubuğu — dolgu mürekkep, dekoratif renk yok */}
                       <span
-                        className="block h-2 bg-ink/70"
+                        className="oran"
                         style={{ width: `${Math.max(pay, 1)}%` }}
                         aria-hidden="true"
                       />
@@ -165,9 +162,7 @@ export default async function TahsilatlarSayfasi(props: {
       </section>
 
       <section>
-        <div className="panel-head">
-          <h2 className="lbl">Tahsilat Kayıtları</h2>
-        </div>
+        <SectionHeader baslik={"Tahsilat Kayıtları"} />
 
         <form className="mb-4 flex flex-wrap items-end gap-3">
           <div>
@@ -206,18 +201,18 @@ export default async function TahsilatlarSayfasi(props: {
                     <td>
                       <Link
                         href={`/cariler/${t.customerId}`}
-                        className="underline underline-offset-4 decoration-rule-strong hover:decoration-ink"
+                        className="baglanti"
                       >
-                        <span className="num text-ink-mute">{t.customer.kod}</span> {t.customer.ad}
+                        <span className="num text-label-2">{t.customer.kod}</span> {t.customer.ad}
                       </Link>
                     </td>
-                    <td className="num text-ink-soft">{t.invoice?.faturaNo ?? '—'}</td>
-                    <td className="num text-ink-soft">
+                    <td className="num text-label-2">{t.invoice?.faturaNo ?? '—'}</td>
+                    <td className="num text-label-2">
                       {t.invoice ? tarih(t.invoice.vadeTarihi) : '—'}
                     </td>
                     <td className="sag">
                       {gecikme === null ? (
-                        <span className="text-ink-mute">—</span>
+                        <span className="text-label-2">—</span>
                       ) : gecikme > 0 ? (
                         <span className="tick t-warn">{gecikme} gün</span>
                       ) : (
@@ -225,16 +220,16 @@ export default async function TahsilatlarSayfasi(props: {
                       )}
                     </td>
                     <td>{yontemAdi(t.yontem)}</td>
-                    <td className="text-ink-mute">{t.aciklama ?? '—'}</td>
+                    <td className="text-label-2">{t.aciklama ?? '—'}</td>
                     <td className="sag num font-medium">{tl(t.tutar)}</td>
                   </tr>
                 )
               })}
             </tbody>
             <tfoot>
-              <tr className="border-t-2 border-rule-strong font-semibold">
-                <td colSpan={7} className="pt-2">SAYFA TOPLAMI</td>
-                <td className="sag num pt-2">
+              <tr>
+                <td colSpan={7} >SAYFA TOPLAMI</td>
+                <td className="sag num">
                   {tl(v.kayitlar.reduce((t, x) => t + x.tutar, 0))}
                 </td>
               </tr>
@@ -249,7 +244,7 @@ export default async function TahsilatlarSayfasi(props: {
             ) : (
               <span />
             )}
-            <span className="num text-xs text-ink-mute">Sayfa {v.sayfa} / {sonSayfa}</span>
+            <span className="num kpi-sub">Sayfa {v.sayfa} / {sonSayfa}</span>
             {v.sayfa < sonSayfa ? (
               <Link href={sayfaLinki(v.sayfa + 1)} className="btn">Sonraki →</Link>
             ) : (

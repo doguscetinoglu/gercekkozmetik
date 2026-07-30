@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { SectionHeader } from '@/components/PageHeader'
 import { notFound } from 'next/navigation'
 import Kpi, { KpiKusak } from '@/components/Kpi'
 import PdfButton from '@/components/PdfButton'
@@ -141,21 +142,23 @@ export default async function CariDetay(props: { params: Promise<{ id: string }>
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
-          <Link href="/cariler" className="lbl underline underline-offset-4">
-            ← Cari Hesaplar
-          </Link>
-          <h1 className="mt-2 flex flex-wrap items-baseline gap-x-3 text-xl font-semibold">
-            <span className="num text-ink-mute">{cari.kod}</span>
-            <span>{cari.ad}</span>
-            {!cari.aktif && <span className="tick t-mute">Pasif</span>}
-          </h1>
-          <p className="mt-1 text-sm text-ink-soft">
-            {segmentAdi(cari.segment)} · {cari.sehir} · Temsilci: {cari.temsilci}
-          </p>
+      <div>
+        <Link href="/cariler" className="baglanti text-[0.8125rem]">
+          ← Cari hesaplar
+        </Link>
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+          <div className="min-w-0">
+            <span className="lbl num block">{cari.kod}</span>
+            <h1 className="baslik-buyuk mt-1 flex flex-wrap items-baseline gap-x-3">
+              {cari.ad}
+              {!cari.aktif && <span className="tick t-mute">Pasif</span>}
+            </h1>
+            <p className="ikincil mt-1.5">
+              {segmentAdi(cari.segment)} · {cari.sehir} · Temsilci {cari.temsilci}
+            </p>
+          </div>
+          <PdfButton rapor={rapor} etiket="Ekstre indir" birincil />
         </div>
-        <PdfButton rapor={rapor} etiket="Ekstre PDF" birincil />
       </div>
 
       <KpiKusak>
@@ -182,14 +185,12 @@ export default async function CariDetay(props: { params: Promise<{ id: string }>
       </KpiKusak>
 
       <section>
-        <div className="panel-head">
-          <h2 className="lbl">Risk Şeridi</h2>
-        </div>
+        <SectionHeader baslik={"Risk Şeridi"} />
         <RiskBand kovalar={kovalar} />
       </section>
 
       {/* İletişim bilgileri — dar bir tanım listesi */}
-      <section className="border border-rule p-4">
+      <section className="kart kart-dolgu">
         <h2 className="lbl mb-3">İletişim ve Sözleşme</h2>
         <dl className="grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
           {[
@@ -199,7 +200,7 @@ export default async function CariDetay(props: { params: Promise<{ id: string }>
             ['Kredi Limiti', tl(cari.krediLimiti), true],
           ].map(([etiket, deger, mono]) => (
             <div key={String(etiket)}>
-              <dt className="lbl">{etiket}</dt>
+              <dt className="baslik-bolum">{etiket}</dt>
               <dd className={`mt-0.5 ${mono ? 'num' : 'break-all'}`}>{deger}</dd>
             </div>
           ))}
@@ -207,12 +208,9 @@ export default async function CariDetay(props: { params: Promise<{ id: string }>
       </section>
 
       <section>
-        <div className="panel-head">
-          <h2 className="lbl">Açık Faturalar</h2>
-          <span className="num text-xs text-ink-mute">{sayi(acikFaturalar.length)} kayıt</span>
-        </div>
+        <SectionHeader baslik={"Açık Faturalar"} yan={<span className="num kpi-sub">{sayi(acikFaturalar.length)} kayıt</span>} />
         {acikFaturalar.length === 0 ? (
-          <p className="text-sm text-ink-mute">Açık fatura bulunmuyor.</p>
+          <p className="text-sm text-label-2">Açık fatura bulunmuyor.</p>
         ) : (
           <div className="tbl-kaydir">
             <table className="tbl">
@@ -232,10 +230,10 @@ export default async function CariDetay(props: { params: Promise<{ id: string }>
                 {acikFaturalar.map((f) => (
                   <tr key={f.id}>
                     <td className="num">{f.faturaNo}</td>
-                    <td className="num text-ink-soft">{tarih(f.kesimTarihi)}</td>
+                    <td className="num text-label-2">{tarih(f.kesimTarihi)}</td>
                     <td className="num">{tarih(f.vadeTarihi)}</td>
                     <td className="sag num">{tl(f.tutar)}</td>
-                    <td className="sag num text-ink-soft">
+                    <td className="sag num text-label-2">
                       {f.odenenTutar > 0 ? tl(f.odenenTutar) : '—'}
                     </td>
                     <td className="sag num font-medium">{tl(f.tutar - f.odenenTutar)}</td>
@@ -246,7 +244,7 @@ export default async function CariDetay(props: { params: Promise<{ id: string }>
                         <span className="tick t-ok">Vadesi gelmemiş</span>
                       )}
                     </td>
-                    <td className="text-ink-soft">{faturaDurumAdi(f.durum)}</td>
+                    <td className="text-label-2">{faturaDurumAdi(f.durum)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -256,10 +254,7 @@ export default async function CariDetay(props: { params: Promise<{ id: string }>
       </section>
 
       <section>
-        <div className="panel-head">
-          <h2 className="lbl">Ödeme Geçmişi — Ne Zaman, Kaç Gün Gecikmeyle</h2>
-          <span className="num text-xs text-ink-mute">{sayi(kapananFaturalar.length)} kapanan fatura</span>
-        </div>
+        <SectionHeader baslik={"Ödeme Geçmişi — Ne Zaman, Kaç Gün Gecikmeyle"} yan={<span className="num kpi-sub">{sayi(kapananFaturalar.length)} kapanan fatura</span>} />
         <div className="tbl-kaydir">
           <table className="tbl">
             <thead>
@@ -277,7 +272,7 @@ export default async function CariDetay(props: { params: Promise<{ id: string }>
                 return (
                   <tr key={f.id}>
                     <td className="num">{f.faturaNo}</td>
-                    <td className="num text-ink-soft">{tarih(f.vadeTarihi)}</td>
+                    <td className="num text-label-2">{tarih(f.vadeTarihi)}</td>
                     <td className="num">{f.kapanmaTarihi ? tarih(f.kapanmaTarihi) : '—'}</td>
                     <td className="sag num">{tl(f.tutar)}</td>
                     <td className="sag">
@@ -290,17 +285,14 @@ export default async function CariDetay(props: { params: Promise<{ id: string }>
           </table>
         </div>
         {kapananFaturalar.length > 40 && (
-          <p className="mt-2 text-xs text-ink-mute">
+          <p className="mt-2 kpi-sub">
             En yeni 40 kayıt gösteriliyor. Tamamı için PDF ekstresini indirin.
           </p>
         )}
       </section>
 
       <section>
-        <div className="panel-head">
-          <h2 className="lbl">Bildirim Geçmişi</h2>
-          <span className="num text-xs text-ink-mute">{sayi(bildirimler.length)} gönderim</span>
-        </div>
+        <SectionHeader baslik={"Bildirim Geçmişi"} yan={<span className="num kpi-sub">{sayi(bildirimler.length)} gönderim</span>} />
         <div className="tbl-kaydir">
           <table className="tbl">
             <thead>
@@ -318,10 +310,10 @@ export default async function CariDetay(props: { params: Promise<{ id: string }>
               {bildirimler.slice(0, 40).map((b) => (
                 <tr key={b.id}>
                   <td className="num">{tarih(b.gonderimZamani)}</td>
-                  <td className="num text-ink-soft">{saat(b.gonderimZamani)}</td>
+                  <td className="num text-label-2">{saat(b.gonderimZamani)}</td>
                   <td className="font-medium">{kanalAdi(b.kanal)}</td>
-                  <td className="text-ink-soft">{b.sablon}</td>
-                  <td className="num text-ink-soft">{b.invoice?.faturaNo ?? '—'}</td>
+                  <td className="text-label-2">{b.sablon}</td>
+                  <td className="num text-label-2">{b.invoice?.faturaNo ?? '—'}</td>
                   <td className="sag num">
                     {b.gonderimdekiGecikmeGunu < 0 ? (
                       <span className="text-ok">vade öncesi {Math.abs(b.gonderimdekiGecikmeGunu)} gün</span>
@@ -344,7 +336,7 @@ export default async function CariDetay(props: { params: Promise<{ id: string }>
           </table>
         </div>
         {bildirimler.length > 40 && (
-          <p className="mt-2 text-xs text-ink-mute">
+          <p className="mt-2 kpi-sub">
             En yeni 40 kayıt gösteriliyor. Tamamı için PDF ekstresini indirin.
           </p>
         )}

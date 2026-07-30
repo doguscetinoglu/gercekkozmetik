@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { SectionHeader } from '@/components/PageHeader'
 import Kpi, { KpiKusak } from '@/components/Kpi'
 import PdfButton from '@/components/PdfButton'
 import { durumAdi, kanalAdi, saat, sayi, tarih, tarihAcik, tl, tlKisa, yontemAdi } from '@/lib/format'
@@ -82,7 +83,7 @@ export default function GunlukRapor({ veri }: { veri: Veri }) {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
       {/* Gün seçici */}
       <form className="flex flex-wrap items-end gap-3">
         <input type="hidden" name="rapor" value="gunluk" />
@@ -112,83 +113,80 @@ export default function GunlukRapor({ veri }: { veri: Veri }) {
         />
       </KpiKusak>
 
-      <div className="grid gap-7 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <div>
-          <div className="panel-head">
-            <h3 className="lbl">Kanal Dağılımı</h3>
-          </div>
+          <SectionHeader baslik={"Kanal Dağılımı"} />
           {veri.kanallar.length === 0 ? (
-            <p className="text-sm text-ink-mute">Bu günde gönderim yapılmamış.</p>
+            <p className="text-sm text-label-2">Bu günde gönderim yapılmamış.</p>
           ) : (
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th scope="col">Kanal</th>
-                  <th scope="col" className="sag">Gönderim</th>
-                  <th scope="col" className="w-1/2">Pay</th>
-                </tr>
-              </thead>
-              <tbody>
-                {veri.kanallar.map((k) => (
-                  <tr key={k.kanal}>
-                    <td className="font-medium">{kanalAdi(k.kanal)}</td>
-                    <td className="sag num">{sayi(k.adet)}</td>
-                    <td>
-                      <span
-                        className="block h-2 bg-ink/70"
-                        style={{ width: `${(k.adet / veri.bildirimler.length) * 100}%` }}
-                        aria-hidden="true"
-                      />
-                    </td>
+            <div className="tbl-kaydir">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th scope="col">Kanal</th>
+                    <th scope="col" className="sag">Gönderim</th>
+                    <th scope="col" className="w-1/2">Pay</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {veri.kanallar.map((k) => (
+                    <tr key={k.kanal}>
+                      <td className="font-medium">{kanalAdi(k.kanal)}</td>
+                      <td className="sag num">{sayi(k.adet)}</td>
+                      <td>
+                        <span
+                          className="oran"
+                          style={{ width: `${(k.adet / veri.bildirimler.length) * 100}%` }}
+                          aria-hidden="true"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
         <div>
-          <div className="panel-head">
-            <h3 className="lbl">Gönderim Sonuçları</h3>
-          </div>
+          <SectionHeader baslik={"Gönderim Sonuçları"} />
           {veri.durumlar.length === 0 ? (
-            <p className="text-sm text-ink-mute">Kayıt yok.</p>
+            <p className="text-sm text-label-2">Kayıt yok.</p>
           ) : (
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th scope="col">Sonuç</th>
-                  <th scope="col" className="sag">Adet</th>
-                </tr>
-              </thead>
-              <tbody>
-                {veri.durumlar.map((d) => (
-                  <tr key={d.durum}>
-                    <td>
-                      <span
-                        className={`tick ${
-                          d.durum === 'BASARISIZ' || d.durum === 'CEVAPSIZ' ? 't-crit' : 't-ok'
-                        }`}
-                      >
-                        {durumAdi(d.durum)}
-                      </span>
-                    </td>
-                    <td className="sag num">{sayi(d.adet)}</td>
+            <div className="tbl-kaydir">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th scope="col">Sonuç</th>
+                    <th scope="col" className="sag">Adet</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {veri.durumlar.map((d) => (
+                    <tr key={d.durum}>
+                      <td>
+                        <span
+                          className={`tick ${
+                            d.durum === 'BASARISIZ' || d.durum === 'CEVAPSIZ' ? 't-crit' : 't-ok'
+                          }`}
+                        >
+                          {durumAdi(d.durum)}
+                        </span>
+                      </td>
+                      <td className="sag num">{sayi(d.adet)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
 
       <div>
-        <div className="panel-head">
-          <h3 className="lbl">Gelen Ödemeler</h3>
-          <span className="num text-xs text-ink-mute">{tl(veri.tahsilatToplami)}</span>
-        </div>
+        <SectionHeader baslik={"Gelen Ödemeler"} yan={<span className="num kpi-sub">{tl(veri.tahsilatToplami)}</span>} />
         {veri.tahsilatlar.length === 0 ? (
-          <p className="text-sm text-ink-mute">Bu günde ödeme gelmemiş.</p>
+          <p className="text-sm text-label-2">Bu günde ödeme gelmemiş.</p>
         ) : (
           <div className="tbl-kaydir">
             <table className="tbl">
@@ -207,22 +205,22 @@ export default function GunlukRapor({ veri }: { veri: Veri }) {
                     <td>
                       <Link
                         href={`/cariler/${t.customerId}`}
-                        className="underline underline-offset-4 decoration-rule-strong hover:decoration-ink"
+                        className="baglanti"
                       >
-                        <span className="num text-ink-mute">{t.customer.kod}</span> {t.customer.ad}
+                        <span className="num text-label-2">{t.customer.kod}</span> {t.customer.ad}
                       </Link>
                     </td>
-                    <td className="num text-ink-soft">{t.invoice?.faturaNo ?? '—'}</td>
+                    <td className="num text-label-2">{t.invoice?.faturaNo ?? '—'}</td>
                     <td>{yontemAdi(t.yontem)}</td>
-                    <td className="text-ink-mute">{t.aciklama ?? '—'}</td>
+                    <td className="text-label-2">{t.aciklama ?? '—'}</td>
                     <td className="sag num font-medium">{tl(t.tutar)}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
-                <tr className="border-t-2 border-rule-strong font-semibold">
-                  <td colSpan={4} className="pt-2">TOPLAM</td>
-                  <td className="sag num pt-2">{tl(veri.tahsilatToplami)}</td>
+                <tr>
+                  <td colSpan={4} >TOPLAM</td>
+                  <td className="sag num">{tl(veri.tahsilatToplami)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -231,12 +229,9 @@ export default function GunlukRapor({ veri }: { veri: Veri }) {
       </div>
 
       <div>
-        <div className="panel-head">
-          <h3 className="lbl">Gönderilen Bildirimler</h3>
-          <span className="num text-xs text-ink-mute">{sayi(veri.bildirimler.length)} kayıt</span>
-        </div>
+        <SectionHeader baslik={"Gönderilen Bildirimler"} yan={<span className="num kpi-sub">{sayi(veri.bildirimler.length)} kayıt</span>} />
         {veri.bildirimler.length === 0 ? (
-          <p className="text-sm text-ink-mute">Bu günde bildirim gönderilmemiş.</p>
+          <p className="text-sm text-label-2">Bu günde bildirim gönderilmemiş.</p>
         ) : (
           <div className="tbl-kaydir">
             <table className="tbl">
@@ -257,13 +252,13 @@ export default function GunlukRapor({ veri }: { veri: Veri }) {
                     <td>
                       <Link
                         href={`/cariler/${b.customerId}`}
-                        className="underline underline-offset-4 decoration-rule-strong hover:decoration-ink"
+                        className="baglanti"
                       >
-                        <span className="num text-ink-mute">{b.customer.kod}</span> {b.customer.ad}
+                        <span className="num text-label-2">{b.customer.kod}</span> {b.customer.ad}
                       </Link>
                     </td>
                     <td className="font-medium">{kanalAdi(b.kanal)}</td>
-                    <td className="text-ink-soft">{b.sablon}</td>
+                    <td className="text-label-2">{b.sablon}</td>
                     <td className="sag num">
                       {b.gonderimdekiGecikmeGunu < 0
                         ? `vade öncesi ${Math.abs(b.gonderimdekiGecikmeGunu)}g`

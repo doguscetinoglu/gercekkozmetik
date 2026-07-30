@@ -3,67 +3,73 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Gerçek Kozmetik — Nakit & Tahsilat Kontrol Sistemi
    ───────────────────────────────────────────────────────────────────────────
-   Tasarım dili: Apple. Nötr gri skala + tek canlı vurgu (sistem mavisi),
-   cömert boşluk, yumuşak yuvarlaklık (7-12px), yüzeyler arası ayrım hafif
-   ayraç çizgisi ve zemin tonu farkıyla kurulur — ağır çerçeve ve sert
-   gölge kullanılmaz.
+   Tasarım dili: Apple.
 
-   Renk yalnızca ANLAM taşır: vurgu = seçili/etkileşimli, sinyal renkleri =
-   durum. Dekoratif renk yok.
+   Dört kural:
+     1. Yüzey hiyerarşisi — içerik beyaz, gruplar hafif gri, kartlar yumuşak
+        gölgeyle bir kat yükselir. Ağır çerçeve kullanılmaz.
+     2. Cömert boşluk ve yuvarlaklık — kart 16px, kontrol 8-10px, kapsül tam.
+     3. Tipografi taşır — Apple cihazlarda SF Pro, diğerlerinde Inter. Rakamlar
+        `tabular-nums` + sıkı tracking; MONO KULLANILMAZ (Apple kullanmaz).
+     4. Renk yalnızca anlam — vurgu = etkileşim, sinyal = durum. Dekor yok.
 
-   Palet WCAG AA için ölçüldü. İki sonuç kodu bağlıyor:
-     · --color-label-3 (#86868B) hiçbir zeminde 4.5:1 geçmez → METİN İÇİN
-       KULLANILMAZ, yalnızca ikon/ayraç gibi grafik öğelerde (≥3:1 yeterli).
-     · --color-accent (#0071E3) tint zeminde 4.31 verir → tint üzerinde metin
-       rengi olarak kullanılmaz; o durumda --color-accent-deep kullanılır.
+   Palet WCAG AA için ölçüldü. Koda bağlanan üç sonuç:
+     · --color-label-3 (#86868B) hiçbir zeminde 4.5:1 geçmez → METİN DEĞİL,
+       yalnızca ikon/ayraç gibi grafik öğe (≥3:1 yeterli).
+     · Dört sinyal rengi kendi %12 tint'i üzerinde 4.52-5.07 verir → durum
+       kapsülleri güvenli.
+     · --color-accent (#0071E3) kendi tint'inde 3.98 → tint üzerinde metin
+       olarak kullanılmaz, --color-accent-deep kullanılır.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @theme {
-  /* Yüzeyler */
+  /* ── Yüzeyler ── */
   --color-paper: #ffffff; /* içerik zemini */
-  --color-paper-2: #f5f5f7; /* bölüm dolgusu / tablo başlığı */
+  --color-paper-2: #f5f5f7; /* gruplanmış alan / tablo başlığı */
   --color-paper-3: #ebebed; /* seçili satır */
   --color-chrome: #f5f5f7; /* kenar çubuğu / araç çubuğu */
 
-  /* Metin skalası — ölçülen kontrast (beyaz / #F5F5F7) */
+  /* ── Metin skalası — ölçülen kontrast (beyaz / #F5F5F7) ── */
   --color-label: #1d1d1f; /* 16.8 / 15.5 */
   --color-label-2: #6e6e73; /*  5.1 /  4.7 */
   --color-label-3: #86868b; /*  3.6 /  3.3 — SADECE grafik öğe */
-
-  /* Geriye dönük adlar: sayfalar bu adları kullanıyor, aynı skalaya bağlı */
   --color-ink: var(--color-label);
   --color-ink-soft: #424245; /* 10.4 / 9.6 */
   --color-ink-mute: var(--color-label-2);
 
-  /* Ayraçlar ve dolgular */
-  --color-separator: rgb(0 0 0 / 0.09);
-  --color-rule: rgb(0 0 0 / 0.09);
-  --color-rule-strong: rgb(0 0 0 / 0.16);
-  --color-fill: rgb(0 0 0 / 0.05); /* avatar, sessiz dolgu */
-  --color-fill-hover: rgb(0 0 0 / 0.04); /* hover zemini */
+  /* ── Ayraçlar ve dolgular ── */
+  --color-separator: rgb(0 0 0 / 0.08);
+  --color-rule: rgb(0 0 0 / 0.07);
+  --color-rule-strong: rgb(0 0 0 / 0.14);
+  --color-fill: rgb(0 0 0 / 0.05);
+  --color-fill-hover: rgb(0 0 0 / 0.04);
 
-  /* Vurgu — sistem mavisi */
+  /* ── Vurgu ── */
   --color-accent: #0071e3;
   --color-accent-deep: #0058b0; /* tint zeminde metin için */
-  --color-accent-soft: rgb(0 113 227 / 0.1); /* seçili öğe zemini */
+  --color-accent-soft: rgb(0 113 227 / 0.1);
 
-  /* Sinyal renkleri — SADECE durum için */
-  --color-ok: #1d7a4d; /* zamanında / ödendi     5.3 */
-  --color-warn: #8a6410; /* 1-30 gün gecikme      5.4 */
-  --color-alert: #aa4c19; /* 31-60 gün gecikme     5.6 */
-  --color-crit: #c1121f; /* 60+ gün gecikme       6.2 */
+  /* ── Sinyal renkleri ── */
+  --color-ok: #1d7a4d;
+  --color-warn: #8a6410;
+  --color-alert: #aa4c19;
+  --color-crit: #c1121f;
 
-  /* Apple cihazlarda gerçek SF Pro; diğerlerinde Inter (SF'e en yakın). */
   --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', var(--font-inter),
     'Segoe UI', sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
 
-/* ───────────────────────────── Temel ───────────────────────────── */
+/* Gölgeler — Apple'ın derinliği çok yumuşaktır; sert gölge amatör görünür. */
+:root {
+  --golge-kart: 0 1px 2px rgb(0 0 0 / 0.04), 0 6px 16px -6px rgb(0 0 0 / 0.08);
+  --golge-yukseltilmis: 0 2px 6px rgb(0 0 0 / 0.05), 0 14px 32px -10px rgb(0 0 0 / 0.12);
+}
+
+/* ───────────────────────────────── Temel ───────────────────────────────── */
 
 html {
-  /* Mobilde okunabilirlik kuralı: gövde metni 16px'in altına inmez.
-     Masaüstünde veri yoğunluğu için 15px'e çekilir. */
+  /* Mobilde gövde metni 16px'in altına inmez; masaüstünde veri yoğunluğu için
+     15px'e çekilir. */
   font-size: 16px;
   background: var(--color-paper);
 }
@@ -79,29 +85,29 @@ body {
   color: var(--color-label);
   font-family: var(--font-sans);
   line-height: 1.5;
-  /* Apple arayüzlerinin ince görünümü büyük ölçüde bu iki satırdan gelir. */
+  /* Apple arayüzlerinin ince görünümü büyük ölçüde bu üç satırdan gelir. */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: -0.005em;
 }
 
-/* Rakamlar her zaman mono ve tabular — finans tablosunda hizalama şart.
-   font-variant-numeric olmadan sayılar sütun içinde kayar. */
+/**
+ * Rakam hücreleri. Mono DEĞİL: SF Pro / Inter'in tabular figürleri kullanılır —
+ * sütun hizası korunur ama arayüz Apple'ın tipografik diline uyar.
+ */
 .num {
-  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
 }
 
-/* Klavye erişimi: outline asla karşılığı olmadan kaldırılmaz.
-   Apple'ın focus ring'i vurgu renginde ve yuvarlak. */
+/* Klavye erişimi: outline asla karşılığı olmadan kaldırılmaz. */
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 7px;
 }
 
-/* Hareket hassasiyeti olan kullanıcılar için tüm geçişler kapanır. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -111,66 +117,116 @@ body {
   }
 }
 
-/* ──────────────────────── Tipografik öğeler ──────────────────────── */
+/* ─────────────────────────────── Tipografi ───────────────────────────────
+   Apple tip skalası. Büyük başlıklarda tracking negatife çekilir — SF Pro
+   Display davranışının taklidi. */
 
-/* Bölüm başlığı: etiket değil, editoryal üst başlık.
-   Küçük punto + geniş harf aralığı. */
-.lbl {
-  font-size: 0.6875rem;
+.baslik-buyuk {
+  font-size: clamp(1.625rem, 3vw, 2rem);
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-ink-mute);
+  letter-spacing: -0.022em;
+  line-height: 1.15;
+  color: var(--color-label);
 }
 
-/* Bölüm başlığı satırı — altından güçlü saç çizgi geçer. */
+.baslik-bolum {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.014em;
+  color: var(--color-label);
+}
+
+/**
+ * İkincil etiket. BÜYÜK HARF ve geniş harf aralığı YOK — Apple arayüzlerinde
+ * mikro etiketler cümle düzeninde ve sakin gridir.
+ */
+.lbl {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--color-label-2);
+}
+
+.ikincil {
+  font-size: 0.875rem;
+  color: var(--color-label-2);
+  letter-spacing: -0.005em;
+}
+
+/* Bölüm başlığı satırı — altında ağır çizgi yok, boşlukla ayrılır. */
 .panel-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--color-rule-strong);
   margin-bottom: 0.875rem;
 }
 
-/* Sayfa/bölüm alanı. */
-.panel {
-  border: 1px solid var(--color-separator);
-  border-radius: 12px;
+/* ───────────────────────────────── Kartlar ───────────────────────────────── */
+
+.kart {
   background: var(--color-paper);
-  padding: 1.125rem 1.25rem 1.25rem;
+  border: 1px solid var(--color-separator);
+  border-radius: 16px;
+  box-shadow: var(--golge-kart);
 }
 
-/* ───────────────────────────── KPI ─────────────────────────────
-   Rakam ana görsel öğedir. Grafik değil, sayının kendisi bakılan şey. */
+.kart-dolgu {
+  padding: 1.125rem 1.25rem;
+}
+
+/* Gruplanmış alan — kart değil, hafif gri bir bölge (Apple'ın "grouped" stili) */
+.grup {
+  background: var(--color-paper-2);
+  border-radius: 16px;
+  padding: 1.125rem 1.25rem;
+}
+
+/* Geriye dönük ad: sayfalar .panel kullanıyor */
+.panel {
+  background: var(--color-paper);
+  border: 1px solid var(--color-separator);
+  border-radius: 16px;
+  box-shadow: var(--golge-kart);
+  padding: 1.125rem 1.25rem;
+}
+
+/* ─────────────────────────────── İstatistik ───────────────────────────────
+   Rakam sayfanın kahramanı; büyük, sıkı ve tabular. */
 
 .kpi-num {
-  font-family: var(--font-mono);
+  display: block;
+  font-size: clamp(1.875rem, 3.2vw, 2.375rem);
+  font-weight: 600;
+  letter-spacing: -0.028em;
+  line-height: 1.05;
   font-variant-numeric: tabular-nums;
-  font-weight: 500;
-  letter-spacing: -0.035em;
-  line-height: 0.95;
-  /* Üst sınır KPI kuşağının 3 sütun genişliğine göre ayarlı: daha büyüğü
-     "₺44,1 M" gibi 7 karakterlik mono değerleri kırpıyor. */
-  font-size: clamp(1.875rem, 3.4vw, 2.75rem);
-  color: var(--color-ink);
+  color: var(--color-label);
 }
 
-/* Sayfanın birincil rakamı — daha da büyük. */
 .kpi-num-lg {
-  font-size: clamp(2.375rem, 4.6vw, 3.625rem);
+  font-size: clamp(2.25rem, 4vw, 3rem);
+  letter-spacing: -0.032em;
 }
 
 .kpi-sub {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--color-ink-mute);
+  font-size: 0.8125rem;
+  color: var(--color-label-2);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.005em;
 }
 
-/* ──────────────────────────── Tablolar ────────────────────────────
-   Zebra yok — ayrımlar saç çizgiyle. Yoğun ama havalanabilir. */
+/* ─────────────────────────────── Tablolar ───────────────────────────────
+   Yuvarlak kart içinde, ferah satırlar, inset ayraçlar. Zebra yok. */
+
+.tbl-kaydir {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--color-paper);
+  border: 1px solid var(--color-separator);
+  border-radius: 16px;
+  box-shadow: var(--golge-kart);
+}
 
 .tbl {
   width: 100%;
@@ -178,156 +234,221 @@ body {
   font-size: 0.875rem;
 }
 
-@media (min-width: 768px) {
-  .tbl {
-    font-size: 0.8125rem;
-  }
+/* Kaydırma kabındaki tablo içeriği kadar genişler: dar ekranda sıkışıp metni
+   satırlara bölmek yerine kayar. */
+.tbl-kaydir .tbl {
+  min-width: max-content;
 }
 
 .tbl thead th {
   text-align: left;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--color-ink-mute);
-  padding: 0.5rem 0.625rem;
-  border-bottom: 1px solid var(--color-rule-strong);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: -0.003em;
+  color: var(--color-label-2);
+  background: var(--color-paper-2);
+  padding: 0.6875rem 0.9375rem;
+  border-bottom: 1px solid var(--color-separator);
   white-space: nowrap;
 }
 
+.tbl thead th:first-child {
+  border-top-left-radius: 15px;
+}
+.tbl thead th:last-child {
+  border-top-right-radius: 15px;
+}
+
+/* DİKKAT: buraya `color` YAZILMAZ. `.tbl tbody td` özgüllüğü (0,1,2)
+   `.text-label-2` gibi utility sınıflarını (0,1,0) ezer ve hücrelerdeki tüm
+   renk sınıfları sessizce iptal olur. Metin rengi body'den miras alınır. */
 .tbl tbody td {
-  padding: 0.5rem 0.625rem;
+  padding: 0.75rem 0.9375rem;
   border-bottom: 1px solid var(--color-rule);
-  vertical-align: baseline;
+  vertical-align: middle;
+}
+
+.tbl tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tbl tbody tr {
+  transition: background-color 120ms;
 }
 
 .tbl tbody tr:hover {
+  background: rgb(0 0 0 / 0.022);
+}
+
+/* Aynı gerekçeyle burada da `color` yok. */
+.tbl tfoot td {
+  padding: 0.75rem 0.9375rem;
   background: var(--color-paper-2);
+  border-top: 1px solid var(--color-separator);
+  font-weight: 600;
 }
 
 .tbl .sag {
   text-align: right;
 }
 
-/* Geniş tablolar kendi içinde kayar — sayfa gövdesi yatay kaymaz. */
-.tbl-kaydir {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Kaydırma kabındaki tablo içeriği kadar genişler: dar ekranda SIKIŞMAK yerine
-   kayar ("Nazar Perakende A.Ş." üç satıra bölünmez). Sabit bir min-width vermek
-   yanlıştı — 4 sütunlu özet tablolarını da gereksiz kaydırıyordu. max-content
-   ile geniş tablolar kayar, dar tablolar olduğu gibi sığar. */
-.tbl-kaydir .tbl {
-  min-width: max-content;
-}
-
-/* ─────────────────────── Durum göstergesi ───────────────────────
-   Renkli chip YOK. Küçük büyük-harf etiket + solunda 2px dikey çentik.
-   Durum asla yalnız renkle anlatılmaz: etiket metni her zaman okunur —
-   hem ekran okuyucu hem de PDF'in gri basılması için. */
+/* ────────────────────────── Durum kapsülü ──────────────────────────
+   Yumuşak tint zemin + koyu metin. Renk tek başına anlam taşımaz: etiket
+   metni her zaman okunur (ekran okuyucu ve gri baskı için). */
 
 .tick {
   display: inline-flex;
   align-items: center;
-  gap: 0.4375rem;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  gap: 0.3125rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
+/* Kapsülün başındaki nokta — renk körlüğünde metin zaten yeterli, nokta
+   yalnızca tarama hızını artırır. */
 .tick::before {
   content: "";
-  width: 2px;
-  height: 0.875em;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
   background: currentColor;
   flex: none;
 }
 
-.t-ok { color: var(--color-ok); }
-.t-warn { color: var(--color-warn); }
-.t-alert { color: var(--color-alert); }
-.t-crit { color: var(--color-crit); }
-.t-mute { color: var(--color-ink-mute); }
+.t-ok {
+  color: var(--color-ok);
+  background: rgb(29 122 77 / 0.12);
+}
+.t-warn {
+  color: var(--color-warn);
+  background: rgb(138 100 16 / 0.12);
+}
+.t-alert {
+  color: var(--color-alert);
+  background: rgb(170 76 25 / 0.12);
+}
+.t-crit {
+  color: var(--color-crit);
+  background: rgb(193 18 31 / 0.12);
+}
+.t-mute {
+  color: var(--color-label-2);
+  background: var(--color-fill);
+}
 
-/* ──────────────── İmza öğesi: RİSK ŞERİDİ ────────────────
-   Yaşlandırma, sayfa genişliğinde tek sürekli şerit olarak okunur.
-   Ayrı ayrı bar chart yerine tek bakışta kavranan bir bütün. */
+/* ────────────────────── Yaşlandırma şeridi ──────────────────────
+   Tek sürekli, yuvarlak uçlu oran çubuğu. Bölmeler dolu sinyal renginde;
+   rakamlar çubuğun ALTINDA açıklama olarak durur (çubuk içine sıkıştırmak
+   dar ekranda okunmaz hale geliyordu). */
 
-.riskband {
+.serit {
   display: flex;
   width: 100%;
-  border: 1px solid var(--color-rule-strong);
+  height: 0.75rem;
+  border-radius: 999px;
   overflow: hidden;
-  /* Dar ekranda 5 bölmeye metin sığmıyor: şerit ince bir oran çubuğuna iner,
-     rakamlar hemen altındaki tablodan okunur. Bilgi kaybı yok. */
-  height: 0.875rem;
+  background: var(--color-fill);
+  gap: 2px;
 }
 
-@media (min-width: 640px) {
-  .riskband {
-    height: 3rem;
-  }
-}
-
-.riskband-seg {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0 0.625rem;
-  border-right: 1px solid var(--color-rule-strong);
+.serit-dilim {
   min-width: 0;
-  overflow: hidden;
+  transition: opacity 150ms;
 }
 
-.riskband-seg:last-child {
-  border-right: none;
+.serit-dilim:first-child {
+  border-radius: 999px 0 0 999px;
+}
+.serit-dilim:last-child {
+  border-radius: 0 999px 999px 0;
+}
+.serit-dilim:only-child {
+  border-radius: 999px;
 }
 
-/* Metinler yalnızca şerit tam yüksekliğe çıktığında görünür. */
-.rb-tutar,
-.rb-etiket {
-  display: none;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.s-ok {
+  background: var(--color-ok);
+}
+.s-warn {
+  background: var(--color-warn);
+}
+.s-alert {
+  background: var(--color-alert);
+}
+.s-crit {
+  background: var(--color-crit);
 }
 
-@media (min-width: 640px) {
-  .rb-tutar,
-  .rb-etiket {
-    display: block;
-  }
+/* Şerit altındaki gösterge — renk noktası + etiket + tutar */
+.gosterge-nokta {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex: none;
 }
 
-.rb-tutar {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
+/* ───────────────────── Segmentli kontrol (rapor sekmeleri) ─────────────────
+   Apple'ın segmented control'ü: gri yatak, seçili olan beyaz kabartma. */
+
+.seg {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  background: var(--color-fill);
+  border-radius: 10px;
+}
+
+.seg-oge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0 0.875rem;
+  border-radius: 8px;
   font-size: 0.8125rem;
   font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--color-label-2);
+  white-space: nowrap;
+  transition: background-color 150ms, color 150ms, box-shadow 150ms;
 }
 
-.rb-etiket {
-  font-size: 0.625rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-mute);
+.seg-oge:hover {
+  color: var(--color-label);
 }
 
-/* Dolgu, sinyal renginin çok açık tonu — yazı mürekkep kalır, okunurluk düşmez. */
-.rb-ok { background: rgb(31 107 74 / 0.09); }
-.rb-warn { background: rgb(138 100 16 / 0.11); }
-.rb-alert { background: rgb(170 76 25 / 0.12); }
-.rb-crit { background: rgb(151 35 28 / 0.13); }
+.seg-oge[data-aktif="true"] {
+  background: var(--color-paper);
+  color: var(--color-label);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+}
 
-/* ───────────────────────── Etkileşim ─────────────────────────
-   Dokunma hedefi minimum 44px. Geçişler 150-200ms. */
+/* ───────────────────────── Oran çubuğu (tablo içi) ───────────────────────── */
 
-/* İkincil buton — çerçeve değil sessiz dolgu (Apple'ın "bordered" stili). */
+.oran {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  min-width: 6px;
+}
+
+.oran-yatak {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-fill);
+  overflow: hidden;
+}
+
+/* ───────────────────────────── Butonlar ───────────────────────────── */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -336,14 +457,14 @@ body {
   min-height: 2.375rem;
   padding: 0 0.875rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--color-fill);
   color: var(--color-label);
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: -0.005em;
   cursor: pointer;
-  transition: background-color 150ms, color 150ms, opacity 150ms;
+  transition: background-color 150ms, color 150ms, opacity 150ms, transform 100ms;
 }
 
 .btn:hover:not(:disabled) {
@@ -352,6 +473,7 @@ body {
 
 .btn:active:not(:disabled) {
   background: rgb(0 0 0 / 0.13);
+  transform: scale(0.98);
 }
 
 .btn:disabled {
@@ -359,10 +481,10 @@ body {
   cursor: not-allowed;
 }
 
-/* Birincil eylem — dolu vurgu rengi. */
 .btn-ink {
   background: var(--color-accent);
   color: #fff;
+  box-shadow: 0 1px 2px rgb(0 113 227 / 0.24);
 }
 
 .btn-ink:hover:not(:disabled) {
@@ -373,7 +495,7 @@ body {
   background: #004a94;
 }
 
-/* ──────────────────────── Form öğeleri ──────────────────────── */
+/* ─────────────────────────── Form öğeleri ─────────────────────────── */
 
 .input,
 .select {
@@ -381,7 +503,7 @@ body {
   min-height: 2.375rem;
   padding: 0 0.6875rem;
   border: 1px solid var(--color-rule-strong);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--color-paper);
   color: var(--color-label);
   font-family: var(--font-sans);
@@ -390,12 +512,11 @@ body {
   transition: border-color 150ms, box-shadow 150ms;
 }
 
-/* Odaklanan alanın kenarı vurgu rengine döner (Apple'ın form davranışı). */
 .input:focus,
 .select:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-accent-soft);
+  box-shadow: 0 0 0 3.5px var(--color-accent-soft);
 }
 
 /* Yerel ok işareti korunur — özel ok çizmek erişilebilirliği bozar. */
@@ -403,31 +524,13 @@ body {
   cursor: pointer;
 }
 
-/* ─────────────────────── Navigasyon rayı ───────────────────────
-   Dolgulu sidebar paneli değil: saç çizgiyle ayrılmış ince ray.
-   Aktif öğe yuvarlak pill değil, solunda 3px dolu mürekkep bloğu. */
-
-.rail-link {
-  display: flex;
-  align-items: center;
-  min-height: 2.75rem;
-  padding: 0 0.875rem 0 0.8125rem;
-  border-left: 3px solid transparent;
-  color: var(--color-ink-soft);
-  font-size: 0.8125rem;
+/* Bağlantılar — Apple'da alt çizgi yerine vurgu rengi taşır. */
+.baglanti {
+  color: var(--color-accent);
   font-weight: 500;
-  letter-spacing: 0.01em;
-  transition: color 180ms, background-color 180ms;
+  transition: color 150ms;
 }
 
-.rail-link:hover {
-  color: var(--color-ink);
-  background: var(--color-paper-2);
-}
-
-.rail-link[data-aktif="true"] {
-  border-left-color: var(--color-ink);
-  color: var(--color-ink);
-  font-weight: 600;
-  background: var(--color-paper-2);
+.baglanti:hover {
+  color: var(--color-accent-deep);
 }

@@ -1,5 +1,7 @@
 import Link from 'next/link'
+
 import Kpi, { KpiKusak } from '@/components/Kpi'
+import PageHeader, { SectionHeader } from '@/components/PageHeader'
 import PdfButton from '@/components/PdfButton'
 import { BUGUN } from '@/lib/brand'
 import { durumAdi, kanalAdi, saat, sayi, tarih, tarihAcik } from '@/lib/format'
@@ -99,14 +101,13 @@ export default async function BildirimlerSayfasi(props: {
   }
 
   return (
-    <div className="space-y-7">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <span className="lbl block">Bilgilendirme Kaydı</span>
-          <h1 className="mt-1 text-xl font-semibold">{sayi(v.toplam)} bildirim</h1>
-        </div>
-        <PdfButton rapor={rapor} etiket="Bildirim Raporu (PDF)" />
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        ustEtiket="Bilgilendirme kaydı"
+        baslik={`${sayi(v.toplam)} bildirim`}
+        aciklama="SMS, WhatsApp, e-posta ve telefon gönderimlerinin günlük dökümü"
+        eylemler={<PdfButton rapor={rapor} etiket="Raporu indir" />}
+      />
 
       <KpiKusak>
         {matrisToplam.map((k) => (
@@ -122,9 +123,7 @@ export default async function BildirimlerSayfasi(props: {
 
       {/* Gün × kanal matrisi — "günde kaç bildirim, hangi kanaldan" sorusunun cevabı */}
       <section>
-        <div className="panel-head">
-          <h2 className="lbl">Gün × Kanal Dağılımı — Son 14 Gün</h2>
-        </div>
+        <SectionHeader baslik={"Gün × Kanal Dağılımı — Son 14 Gün"} />
         <div className="tbl-kaydir">
           <table className="tbl">
             <thead>
@@ -143,14 +142,14 @@ export default async function BildirimlerSayfasi(props: {
                   <td className="num">{tarih(g.gun)}</td>
                   {KANALLAR.map((k) => (
                     <td key={k} className="sag num">
-                      {g[k] || <span className="text-ink-mute">—</span>}
+                      {g[k] || <span className="text-label-2">—</span>}
                     </td>
                   ))}
                   <td className="sag num font-semibold">{sayi(g.toplam)}</td>
                   <td className="sag">
                     <Link
                       href={`/bildirimler?gun=${g.gun}`}
-                      className="text-xs underline underline-offset-4"
+                      className="baglanti text-[0.8125rem]"
                     >
                       Detay
                     </Link>
@@ -159,12 +158,12 @@ export default async function BildirimlerSayfasi(props: {
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t-2 border-rule-strong font-semibold">
-                <td className="pt-2">TOPLAM</td>
+              <tr>
+                <td>TOPLAM</td>
                 {matrisToplam.map((k) => (
-                  <td key={k.kanal} className="sag num pt-2">{sayi(k.adet)}</td>
+                  <td key={k.kanal} className="sag num">{sayi(k.adet)}</td>
                 ))}
-                <td className="sag num pt-2">{sayi(matrisGenelToplam)}</td>
+                <td className="sag num">{sayi(matrisGenelToplam)}</td>
                 <td />
               </tr>
             </tfoot>
@@ -174,9 +173,7 @@ export default async function BildirimlerSayfasi(props: {
 
       {/* Kayıt listesi + filtre */}
       <section>
-        <div className="panel-head">
-          <h2 className="lbl">Bildirim Kayıtları</h2>
-        </div>
+        <SectionHeader baslik={"Bildirim Kayıtları"} />
 
         <form className="mb-4 flex flex-wrap items-end gap-3">
           <div>
@@ -214,18 +211,18 @@ export default async function BildirimlerSayfasi(props: {
               {v.kayitlar.map((b) => (
                 <tr key={b.id}>
                   <td className="num">{tarih(b.gonderimZamani)}</td>
-                  <td className="num text-ink-soft">{saat(b.gonderimZamani)}</td>
+                  <td className="num text-label-2">{saat(b.gonderimZamani)}</td>
                   <td>
                     <Link
                       href={`/cariler/${b.customerId}`}
-                      className="underline underline-offset-4 decoration-rule-strong hover:decoration-ink"
+                      className="baglanti"
                     >
-                      <span className="num text-ink-mute">{b.customer.kod}</span> {b.customer.ad}
+                      <span className="num text-label-2">{b.customer.kod}</span> {b.customer.ad}
                     </Link>
                   </td>
                   <td className="font-medium">{kanalAdi(b.kanal)}</td>
-                  <td className="text-ink-soft">{b.sablon}</td>
-                  <td className="num text-ink-soft">{b.invoice?.faturaNo ?? '—'}</td>
+                  <td className="text-label-2">{b.sablon}</td>
+                  <td className="num text-label-2">{b.invoice?.faturaNo ?? '—'}</td>
                   <td className="sag num">
                     {b.gonderimdekiGecikmeGunu < 0
                       ? `vade öncesi ${Math.abs(b.gonderimdekiGecikmeGunu)}g`
@@ -241,7 +238,7 @@ export default async function BildirimlerSayfasi(props: {
         </div>
 
         {v.kayitlar.length === 0 && (
-          <p className="border border-rule p-6 text-center text-sm text-ink-mute">
+          <p className="kart py-12 text-center text-sm text-label-2">
             Bu filtrelerle bildirim bulunamadı.
           </p>
         )}
@@ -254,7 +251,7 @@ export default async function BildirimlerSayfasi(props: {
             ) : (
               <span />
             )}
-            <span className="num text-xs text-ink-mute">
+            <span className="num kpi-sub">
               Sayfa {v.sayfa} / {sonSayfa}
             </span>
             {v.sayfa < sonSayfa ? (

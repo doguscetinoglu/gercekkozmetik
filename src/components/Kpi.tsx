@@ -1,11 +1,12 @@
 import { Children } from 'react'
 
 /**
- * KPI bloğu — rakam ana görsel öğedir.
+ * İstatistik kartı — sayfanın kahramanı rakamdır.
  *
- * Kart değil: dikey saç çizgiyle ayrılmış bir alan. Etiket küçük ve harf
- * aralıklı, rakam büyük ve mono. `buyuk` bayrağı sayfanın birincil rakamını
- * diğerlerinden ayırır.
+ * Saç çizgiyle bölünmüş bir ızgara hücresi değil, kendi gölgesi olan bir kart.
+ * Etiket üstte sakin gri, rakam altında büyük ve sıkı, açıklama en altta.
+ * `sinif` verilirse rakam sinyal rengine boyanır ve etiketin yanına küçük bir
+ * renk noktası düşer.
  */
 export default function Kpi({
   etiket,
@@ -17,50 +18,50 @@ export default function Kpi({
   etiket: string
   deger: string
   alt?: string
-  /** Sinyal rengi — yalnızca durum bildiren rakamlarda kullanılır. */
+  /** Sinyal rengi — yalnızca durum bildiren rakamlarda. */
   sinif?: 'ok' | 'warn' | 'alert' | 'crit'
   buyuk?: boolean
 }) {
   return (
-    <div className="min-w-0 bg-paper px-4 py-4">
-      <span className="lbl block">{etiket}</span>
+    <div className="kart kart-dolgu flex min-w-0 flex-col">
+      <span className="lbl flex items-center gap-1.5">
+        {sinif && (
+          <span
+            className="gosterge-nokta"
+            style={{ background: `var(--color-${sinif})` }}
+            aria-hidden="true"
+          />
+        )}
+        <span className="truncate">{etiket}</span>
+      </span>
+
       <span
-        className={`kpi-num ${buyuk ? 'kpi-num-lg' : ''} mt-2.5 block`}
+        className={`kpi-num ${buyuk ? 'kpi-num-lg' : ''} mt-2.5`}
         style={sinif ? { color: `var(--color-${sinif})` } : undefined}
       >
         {deger}
       </span>
-      {alt && <span className="kpi-sub mt-2 block truncate">{alt}</span>}
+
+      {alt && <span className="kpi-sub mt-auto pt-2 truncate">{alt}</span>}
     </div>
   )
 }
 
 /**
- * KPI'ları dikey saç çizgilerle ayıran kuşak.
- *
- * En fazla 3 sütun: rakamlar tasarımın ana görsel öğesi olduğu için her birine
- * geniş yer gerekiyor. 6 sütunda büyük mono rakamlar kırpılıyordu — 6 KPI iki
- * satıra yayılır, sıkışmaz.
+ * Kart ızgarası. Kartların kendi gölgesi olduğu için aralarına çizgi konmaz —
+ * ayrım boşlukla yapılır.
  */
 export function KpiKusak({ children }: { children: React.ReactNode }) {
   const ogeler = Children.toArray(children)
 
-  // Son satırın boş kalan hücreleri, kabın saç-çizgi zeminini gösterip GRİ BLOK
-  // gibi görünüyordu. Kağıt renginde dolgu hücreleriyle kapatılır.
-  // Sütun sayısı kırılım noktalarına göre değiştiği için her kırılım için ayrı
-  // dolgu üretilir ve yalnızca kendi kırılımında görünür.
-  const dolgu = (sutun: number, sinif: string) =>
-    Array.from({ length: (sutun - (ogeler.length % sutun)) % sutun }, (_, i) => (
-      <div key={`dolgu-${sutun}-${i}`} className={`bg-paper ${sinif}`} aria-hidden="true" />
-    ))
+  // 4 ve 5 kartlı sayfalarda 3'lü ızgara son satırda tek kart bırakıp dengeyi
+  // bozuyor; kart sayısına göre sütun sayısı seçilir.
+  const sutunSinifi =
+    ogeler.length === 4
+      ? 'sm:grid-cols-2 lg:grid-cols-4'
+      : ogeler.length % 3 === 0
+        ? 'sm:grid-cols-2 lg:grid-cols-3'
+        : 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'
 
-  // 1px gap + zemin rengi = her iki yönde otomatik saç çizgi. `divide-x`
-  // sarmalanan ızgarada ikinci satırın ilk hücresine yanlış kenar çiziyordu.
-  return (
-    <div className="grid grid-cols-1 gap-px border-y border-rule-strong bg-rule sm:grid-cols-2 lg:grid-cols-3">
-      {ogeler}
-      {dolgu(2, 'hidden sm:block lg:hidden')}
-      {dolgu(3, 'hidden lg:block')}
-    </div>
-  )
+  return <div className={`grid grid-cols-1 gap-3 ${sutunSinifi}`}>{ogeler}</div>
 }

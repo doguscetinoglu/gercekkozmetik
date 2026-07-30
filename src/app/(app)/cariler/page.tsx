@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Kpi, { KpiKusak } from '@/components/Kpi'
+import PageHeader from '@/components/PageHeader'
 import PdfButton from '@/components/PdfButton'
 import { BUGUN } from '@/lib/brand'
 import { sayi, segmentAdi, tarih, tarihAcik, tl, tlKisa } from '@/lib/format'
@@ -124,21 +125,17 @@ export default async function CarilerSayfasi(props: {
   }
 
   return (
-    <div className="space-y-7">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <span className="lbl block">Cari Hesaplar</span>
-          <h1 className="mt-1 text-xl font-semibold">
-            {sayi(suzulmus.length)} cari
-            {suzulmus.length !== hepsi.length && (
-              <span className="ml-2 text-sm font-normal text-ink-mute">
-                / {sayi(hepsi.length)} toplam
-              </span>
-            )}
-          </h1>
-        </div>
-        <PdfButton rapor={rapor} etiket="Listeyi PDF İndir" />
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        ustEtiket="Cari hesaplar"
+        baslik={`${sayi(suzulmus.length)} cari`}
+        aciklama={
+          suzulmus.length !== hepsi.length
+            ? `${sayi(hepsi.length)} cari içinden filtrelendi`
+            : 'Tüm cari hesaplar'
+        }
+        eylemler={<PdfButton rapor={rapor} etiket="Listeyi indir" />}
+      />
 
       <KpiKusak>
         <Kpi etiket="Açık Bakiye" deger={tlKisa(toplamBakiye)} buyuk />
@@ -147,8 +144,8 @@ export default async function CarilerSayfasi(props: {
       </KpiKusak>
 
       {/* Filtre formu: düz GET — JavaScript kapalıyken de çalışır. */}
-      <form className="border border-rule p-4">
-        <h2 className="lbl mb-3">Filtreler</h2>
+      <form className="kart kart-dolgu">
+        <h2 className="baslik-bolum mb-4">Filtreler</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <div>
             <label htmlFor="q" className="lbl mb-1.5 block">Kod veya Ad</label>
@@ -191,10 +188,10 @@ export default async function CarilerSayfasi(props: {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
+        <div className="mt-5 flex flex-wrap items-center gap-2.5">
           <button type="submit" className="btn btn-ink">Uygula</button>
           <Link href="/cariler" className="btn">Temizle</Link>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-2.5">
             <label htmlFor="sirala" className="lbl">Sırala</label>
             <select id="sirala" name="sirala" defaultValue={sirala} className="select w-auto">
               <option value="vadesiGecen">Vadesi geçen (çok→az)</option>
@@ -212,34 +209,31 @@ export default async function CarilerSayfasi(props: {
           <thead>
             <tr>
               <th scope="col">Kod</th>
-              <th scope="col">Cari Adı</th>
+              <th scope="col">Cari adı</th>
               <th scope="col">Segment</th>
               <th scope="col">Şehir</th>
-              <th scope="col" className="sag">Açık Bakiye</th>
-              <th scope="col" className="sag">Vadesi Geçen</th>
+              <th scope="col" className="sag">Açık bakiye</th>
+              <th scope="col" className="sag">Vadesi geçen</th>
               <th scope="col" className="sag">Gecikme</th>
-              <th scope="col" className="sag">Son Bildirim</th>
-              <th scope="col" className="sag">Son Tahsilat</th>
+              <th scope="col" className="sag">Son bildirim</th>
+              <th scope="col" className="sag">Son tahsilat</th>
             </tr>
           </thead>
           <tbody>
             {suzulmus.map((c) => (
               <tr key={c.id}>
-                <td className="num">{c.kod}</td>
+                <td className="num text-label-2">{c.kod}</td>
                 <td>
-                  <Link
-                    href={`/cariler/${c.id}`}
-                    className="font-medium underline underline-offset-4 decoration-rule-strong hover:decoration-ink"
-                  >
+                  <Link href={`/cariler/${c.id}`} className="baglanti">
                     {c.ad}
                   </Link>
                   {!c.aktif && <span className="tick t-mute ml-2">Pasif</span>}
                 </td>
-                <td className="text-ink-soft">{segmentAdi(c.segment)}</td>
-                <td className="text-ink-soft">{c.sehir}</td>
+                <td className="text-label-2">{segmentAdi(c.segment)}</td>
+                <td className="text-label-2">{c.sehir}</td>
                 <td className="sag num">{tl(c.acikBakiye)}</td>
-                <td className="sag num font-medium">
-                  {c.vadesiGecen > 0 ? tl(c.vadesiGecen) : <span className="text-ink-mute">—</span>}
+                <td className="sag num font-semibold">
+                  {c.vadesiGecen > 0 ? tl(c.vadesiGecen) : <span className="font-normal text-label-3">—</span>}
                 </td>
                 <td className="sag">
                   {c.enYuksekGecikme > 0 ? (
@@ -250,20 +244,20 @@ export default async function CarilerSayfasi(props: {
                     <span className="tick t-ok">Güncel</span>
                   )}
                 </td>
-                <td className="sag num text-ink-soft">
+                <td className="sag num text-label-2">
                   {c.sonBildirim ? tarih(c.sonBildirim) : '—'}
                 </td>
-                <td className="sag num text-ink-soft">
+                <td className="sag num text-label-2">
                   {c.sonTahsilat ? tarih(c.sonTahsilat) : '—'}
                 </td>
               </tr>
             ))}
           </tbody>
           <tfoot>
-            <tr className="border-t-2 border-rule-strong font-semibold">
-              <td colSpan={4} className="pt-2">TOPLAM · {sayi(suzulmus.length)} cari</td>
-              <td className="sag num pt-2">{tl(toplamBakiye)}</td>
-              <td className="sag num pt-2">{tl(toplamGecen)}</td>
+            <tr>
+              <td colSpan={4}>Toplam · {sayi(suzulmus.length)} cari</td>
+              <td className="sag num">{tl(toplamBakiye)}</td>
+              <td className="sag num">{tl(toplamGecen)}</td>
               <td colSpan={3} />
             </tr>
           </tfoot>
@@ -271,7 +265,7 @@ export default async function CarilerSayfasi(props: {
       </div>
 
       {suzulmus.length === 0 && (
-        <p className="border border-rule p-6 text-center text-sm text-ink-mute">
+        <p className="kart py-12 text-center text-sm text-label-2">
           Bu filtrelerle eşleşen cari bulunamadı.
         </p>
       )}

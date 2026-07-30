@@ -1,73 +1,100 @@
-import { tl, tlKisa, sayi } from '@/lib/format'
+import { tl, tlKisa, sayi, yuzde } from '@/lib/format'
 import type { YaslandirmaSatiri } from '@/lib/metrics'
 
 /**
- * İMZA ÖĞESİ — Risk Şeridi.
+ * Yaşlandırma şeridi.
  *
- * Yaşlandırma dağılımını ayrı ayrı bar'lar yerine sayfa genişliğinde TEK sürekli
- * şerit olarak gösterir. Her bölmenin genişliği tutarının payına eşit, yani
- * "paramın ne kadarı ne kadar geride" tek bakışta okunur.
+ * Tek sürekli, yuvarlak uçlu oran çubuğu — "paramın ne kadarı ne kadar geride"
+ * tek bakışta okunur. Rakamlar çubuğun İÇİNE değil ALTINA, gösterge olarak
+ * yazılır: dar ekranda beş bölmeye metin sıkıştırmak okunmaz hale getiriyordu.
  *
- * Erişilebilirlik: şeridin kendisi görsel bir özet; altındaki tablo aynı veriyi
- * ekran okuyucu ve klavye kullanıcıları için birebir tekrarlar.
+ * Erişilebilirlik: çubuk görsel bir özet; altındaki gösterge listesi ve
+ * (isteğe bağlı) tablo aynı veriyi metin olarak tekrarlar.
  */
-export default function RiskBand({ kovalar }: { kovalar: YaslandirmaSatiri[] }) {
+export default function RiskBand({
+  kovalar,
+  tabloGoster = true,
+}: {
+  kovalar: YaslandirmaSatiri[]
+  tabloGoster?: boolean
+}) {
   const toplam = kovalar.reduce((t, k) => t + k.tutar, 0)
   const dolu = kovalar.filter((k) => k.tutar > 0)
 
   if (toplam === 0) {
-    return <p className="text-ink-mute text-sm">Açık bakiye bulunmuyor.</p>
+    return <p className="ikincil">Açık bakiye bulunmuyor.</p>
   }
 
   return (
     <div>
-      <div className="riskband" role="img" aria-label={`Yaşlandırma dağılımı, toplam ${tl(toplam)}`}>
-        {dolu.map((kova) => {
-          // Çok küçük dilimler okunamaz hale gelmesin diye alt sınır konur.
-          const pay = Math.max((kova.tutar / toplam) * 100, 10)
-          return (
-            <div
-              key={kova.anahtar}
-              className={`riskband-seg rb-${kova.sinif}`}
-              style={{ flexBasis: `${pay}%` }}
-              title={`${kova.etiket}: ${tl(kova.tutar)} (${kova.adet} fatura)`}
-            >
-              {/* Kısa biçim ("₺2,7 M") — tam tutar dar bölmede kesiliyordu.
-                  Tam değer hem başlık ipucunda hem alttaki tabloda duruyor. */}
-              <span className="rb-tutar">{tlKisa(kova.tutar)}</span>
-              <span className="rb-etiket">{kova.etiket}</span>
-            </div>
-          )
-        })}
+      <div
+        className="serit"
+        role="img"
+        aria-label={`Yaşlandırma dağılımı, toplam ${tl(toplam)}`}
+      >
+        {dolu.map((kova) => (
+          <div
+            key={kova.anahtar}
+            className={`serit-dilim s-${kova.sinif}`}
+            style={{ flexGrow: kova.tutar, flexBasis: 0 }}
+            title={`${kova.etiket}: ${tl(kova.tutar)} (${kova.adet} fatura)`}
+          />
+        ))}
       </div>
 
-      <div className="tbl-kaydir mt-3">
-        <table className="tbl">
-          <caption className="sr-only">Yaşlandırma dağılımı tablo karşılığı</caption>
-          <thead>
-            <tr>
-              <th scope="col">Gecikme Aralığı</th>
-              <th scope="col" className="sag">Fatura</th>
-              <th scope="col" className="sag">Bakiye</th>
-              <th scope="col" className="sag">Pay</th>
-            </tr>
-          </thead>
-          <tbody>
-            {kovalar.map((kova) => (
-              <tr key={kova.anahtar}>
-                <td>
-                  <span className={`tick t-${kova.sinif}`}>{kova.etiket}</span>
-                </td>
-                <td className="sag num">{sayi(kova.adet)}</td>
-                <td className="sag num">{tl(kova.tutar)}</td>
-                <td className="sag num">
-                  {toplam === 0 ? '—' : `%${Math.round((kova.tutar / toplam) * 100)}`}
-                </td>
+      {/* Gösterge — renk noktası + etiket + tutar + pay */}
+      <ul className="mt-4 grid gap-x-6 gap-y-2.5 sm:grid-cols-2 lg:grid-cols-3">
+        {dolu.map((kova) => (
+          <li key={kova.anahtar} className="flex items-baseline gap-2">
+            <span
+              className="gosterge-nokta mt-1.5"
+              style={{ background: `var(--color-${kova.sinif})` }}
+              aria-hidden="true"
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[0.8125rem] font-medium text-label">
+                {kova.etiket}
+              </span>
+              <span className="kpi-sub block">
+                {tlKisa(kova.tutar)} · {sayi(kova.adet)} fatura
+              </span>
+            </span>
+            <span className="num flex-none text-[0.8125rem] font-semibold text-label-2">
+              {yuzde((kova.tutar / toplam) * 100)}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      {tabloGoster && (
+        <div className="tbl-kaydir mt-5">
+          <table className="tbl">
+            <caption className="sr-only">Yaşlandırma dağılımı tablo karşılığı</caption>
+            <thead>
+              <tr>
+                <th scope="col">Gecikme aralığı</th>
+                <th scope="col" className="sag">Fatura</th>
+                <th scope="col" className="sag">Bakiye</th>
+                <th scope="col" className="sag">Pay</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {kovalar.map((kova) => (
+                <tr key={kova.anahtar}>
+                  <td>
+                    <span className={`tick t-${kova.sinif}`}>{kova.etiket}</span>
+                  </td>
+                  <td className="sag num">{sayi(kova.adet)}</td>
+                  <td className="sag num">{tl(kova.tutar)}</td>
+                  <td className="sag num text-label-2">
+                    {yuzde((kova.tutar / toplam) * 100)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

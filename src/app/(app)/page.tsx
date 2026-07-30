@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Kpi, { KpiKusak } from '@/components/Kpi'
+import PageHeader, { SectionHeader } from '@/components/PageHeader'
 import PdfButton from '@/components/PdfButton'
 import RiskBand from '@/components/RiskBand'
 import SeyirGrafigi from '@/components/SeyirGrafigi'
@@ -72,14 +73,13 @@ export default async function Panel() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <span className="lbl block">Genel Durum</span>
-          <h1 className="mt-1 text-xl font-semibold">Yönetim Paneli</h1>
-        </div>
-        <PdfButton rapor={rapor} etiket="Yönetim Özeti (PDF)" birincil />
-      </div>
+    <div className="space-y-10">
+      <PageHeader
+        ustEtiket="Genel durum"
+        baslik="Yönetim Paneli"
+        aciklama={`${sayi(v.cariAdedi)} cari hesabın bakiye, gecikme ve tahsilat durumu`}
+        eylemler={<PdfButton rapor={rapor} etiket="Yönetim Özeti" birincil />}
+      />
 
       <KpiKusak>
         <Kpi
@@ -114,60 +114,66 @@ export default async function Panel() {
         <Kpi etiket="Vade Uyumu" deger={yuzde(v.vadeUyumu)} alt="zamanında kapanan" />
       </KpiKusak>
 
-      {/* İMZA ÖĞESİ — yaşlandırma tek sürekli şerit olarak */}
+      {/* Yaşlandırma — tek sürekli oran şeridi */}
       <section>
-        <div className="panel-head">
-          <h2 className="lbl">Risk Şeridi — Açık Bakiyenin Yaşlandırması</h2>
-          <span className="num text-xs text-ink-mute">{tl(v.ozet.acikBakiye)} toplam</span>
+        <SectionHeader
+          baslik="Açık bakiyenin yaşlandırması"
+          yan={<span className="num kpi-sub">{tl(v.ozet.acikBakiye)} toplam</span>}
+        />
+        <div className="kart kart-dolgu">
+          <RiskBand kovalar={v.kovalar} tabloGoster={false} />
         </div>
-        <RiskBand kovalar={v.kovalar} />
       </section>
 
       <section>
-        <div className="panel-head">
-          <h2 className="lbl">Son 30 Gün — Bildirim ve Tahsilat Seyri</h2>
-          <span className="num text-xs text-ink-mute">Bu ay: {tl(v.ayTahsilat)}</span>
+        <SectionHeader
+          baslik="Son 30 gün — bildirim ve tahsilat seyri"
+          yan={<span className="num kpi-sub">Bu ay {tl(v.ayTahsilat)}</span>}
+        />
+        <div className="kart kart-dolgu">
+          <SeyirGrafigi veri={v.seyir} />
         </div>
-        <SeyirGrafigi veri={v.seyir} />
       </section>
 
       <section>
-        <div className="panel-head">
-          <h2 className="lbl">En Riskli 20 Cari</h2>
-          <Link href="/cariler" className="text-xs font-semibold underline underline-offset-4">
-            Tüm cariler ({sayi(v.cariAdedi)})
-          </Link>
-        </div>
+        <SectionHeader
+          baslik="En riskli 20 cari"
+          yan={
+            <Link href="/cariler" className="baglanti text-[0.8125rem]">
+              Tüm cariler ({sayi(v.cariAdedi)}) →
+            </Link>
+          }
+        />
 
         <div className="tbl-kaydir">
           <table className="tbl">
             <thead>
               <tr>
                 <th scope="col">Kod</th>
-                <th scope="col">Cari Adı</th>
+                <th scope="col">Cari adı</th>
                 <th scope="col">Şehir</th>
                 <th scope="col">Temsilci</th>
-                <th scope="col" className="sag">En Yüksek Gecikme</th>
-                <th scope="col" className="sag">Vadesi Geçen</th>
+                <th scope="col" className="sag">En yüksek gecikme</th>
+                <th scope="col" className="sag">Vadesi geçen</th>
               </tr>
             </thead>
             <tbody>
               {v.enRiskli.map((c) => (
                 <tr key={c.id}>
-                  <td className="num">{c.kod}</td>
+                  <td className="num text-label-2">{c.kod}</td>
                   <td>
-                    <Link href={`/cariler/${c.id}`} className="font-medium underline underline-offset-4 decoration-rule-strong hover:decoration-ink">
+                    <Link href={`/cariler/${c.id}`} className="baglanti">
                       {c.ad}
                     </Link>
                   </td>
-                  <td className="text-ink-soft">{c.sehir}</td>
-                  <td className="text-ink-soft">{c.temsilci}</td>
+                  <td className="text-label-2">{c.sehir}</td>
+                  <td className="text-label-2">{c.temsilci}</td>
                   <td className="sag">
                     <span className={`tick t-${riskSinifi(c.enYuksekGecikme)}`}>
                       {sayi(c.enYuksekGecikme)} gün
                     </span>
                   </td>
-                  <td className="sag num font-medium">{tl(c.vadesiGecen)}</td>
+                  <td className="sag num font-semibold">{tl(c.vadesiGecen)}</td>
                 </tr>
               ))}
             </tbody>
@@ -175,8 +181,8 @@ export default async function Panel() {
         </div>
       </section>
 
-      <p className="border-t border-rule pt-4 text-xs text-ink-mute">
-        Son güncelleme: {tarih(BUGUN)} · Örnek veriyle çalışan tanıtım sistemi
+      <p className="border-t border-separator pt-5 text-[0.75rem] text-label-2">
+        Son güncelleme {tarih(BUGUN)} · Örnek veriyle çalışan tanıtım sistemi
       </p>
     </div>
   )
