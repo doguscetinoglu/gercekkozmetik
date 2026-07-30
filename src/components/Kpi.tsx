@@ -1,3 +1,5 @@
+import { Children } from 'react'
+
 /**
  * KPI bloğu — rakam ana görsel öğedir.
  *
@@ -41,11 +43,24 @@ export default function Kpi({
  * satıra yayılır, sıkışmaz.
  */
 export function KpiKusak({ children }: { children: React.ReactNode }) {
+  const ogeler = Children.toArray(children)
+
+  // Son satırın boş kalan hücreleri, kabın saç-çizgi zeminini gösterip GRİ BLOK
+  // gibi görünüyordu. Kağıt renginde dolgu hücreleriyle kapatılır.
+  // Sütun sayısı kırılım noktalarına göre değiştiği için her kırılım için ayrı
+  // dolgu üretilir ve yalnızca kendi kırılımında görünür.
+  const dolgu = (sutun: number, sinif: string) =>
+    Array.from({ length: (sutun - (ogeler.length % sutun)) % sutun }, (_, i) => (
+      <div key={`dolgu-${sutun}-${i}`} className={`bg-paper ${sinif}`} aria-hidden="true" />
+    ))
+
   // 1px gap + zemin rengi = her iki yönde otomatik saç çizgi. `divide-x`
   // sarmalanan ızgarada ikinci satırın ilk hücresine yanlış kenar çiziyordu.
   return (
     <div className="grid grid-cols-1 gap-px border-y border-rule-strong bg-rule sm:grid-cols-2 lg:grid-cols-3">
-      {children}
+      {ogeler}
+      {dolgu(2, 'hidden sm:block lg:hidden')}
+      {dolgu(3, 'hidden lg:block')}
     </div>
   )
 }
