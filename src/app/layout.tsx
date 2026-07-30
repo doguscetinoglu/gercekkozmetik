@@ -1,14 +1,17 @@
 import type { Metadata } from 'next'
-import { IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
+import { Inter, IBM_Plex_Mono } from 'next/font/google'
 import { MARKA } from '@/lib/brand'
 import './globals.css'
 
 // "latin-ext" alt kümesi ZORUNLU — Türkçe ğ/ş/ı/İ glifleri yalnızca orada.
 // Sadece "latin" ile yazılar bozuk görünür.
-const plexSans = IBM_Plex_Sans({
-  variable: '--font-plex-sans',
+//
+// Inter, SF Pro'ya en yakın web fontu ve YEDEK olarak duruyor: Apple
+// cihazlarda --font-sans zincirinin başındaki -apple-system gerçek SF Pro'yu
+// getirir, Windows/Android'de Inter devralır.
+const inter = Inter({
+  variable: '--font-inter',
   subsets: ['latin', 'latin-ext'],
-  weight: ['400', '500', '600'],
 })
 
 const plexMono = IBM_Plex_Mono({
@@ -26,7 +29,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="tr" className={`${plexSans.variable} ${plexMono.variable} h-full`}>
+    <html lang="tr" className={`${inter.variable} ${plexMono.variable} h-full`}>
       <body className="min-h-full">{children}</body>
     </html>
   )
