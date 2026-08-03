@@ -1,4 +1,4 @@
-# Gerçek Kozmetik — Nakit & Tahsilat Kontrol Sistemi
+# Gerçek Kozmetik — Doğal Katkı
 
 Cari hesap bakiyelerinin vade durumunu, gönderilen bilgilendirmeleri ve gelen tahsilatları
 raporlayan kontrol paneli.
@@ -25,8 +25,9 @@ Her ekran ve her rapor, gösterdiği verinin aynısıyla **PDF olarak indirilir*
 | `/` | Yönetim paneli — KPI'lar, risk şeridi, 30 günlük seyir, en riskli 20 cari |
 | `/cariler` | Filtreli cari listesi (segment · şehir · temsilci · gecikme aralığı) |
 | `/cariler/[id]` | Cari ekstresi — açık faturalar, ödeme geçmişi, bildirim geçmişi |
+| `/temsilci-uyarilari` | Satış temsilcisine öncelik listesi — kimi, neden, ne yaparak arayacak |
 | `/bildirimler` | Bildirim kaydı + gün × kanal dağılım matrisi |
-| `/tahsilatlar` | Tahsilat listesi ve ödeme yöntemi dağılımı |
+| `/tahsilatlar` | Tahsilat listesi (cari · temsilci · gecikme · yöntem filtreli) ve yöntem dağılımı |
 | `/raporlar` | Günlük Faaliyet · Cari Yaşlandırma · Bildirim Etkinliği · Tahsilat Performansı |
 
 ## Teknik

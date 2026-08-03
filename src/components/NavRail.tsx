@@ -2,17 +2,25 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { UYARI_EKRANI } from '@/lib/brand'
 import {
   IkonBildirim,
   IkonCari,
   IkonPanel,
   IkonRapor,
   IkonTahsilat,
+  IkonUyari,
 } from './icons'
 
 const MENU = [
   { yol: '/', ad: 'Panel', kisaAd: 'Panel', Ikon: IkonPanel },
   { yol: '/cariler', ad: 'Cari Hesaplar', kisaAd: 'Cariler', Ikon: IkonCari },
+  {
+    yol: UYARI_EKRANI.yol,
+    ad: UYARI_EKRANI.ad,
+    kisaAd: UYARI_EKRANI.kisaAd,
+    Ikon: IkonUyari,
+  },
   { yol: '/bildirimler', ad: 'Bildirimler', kisaAd: 'Bildirim', Ikon: IkonBildirim },
   { yol: '/tahsilatlar', ad: 'Tahsilatlar', kisaAd: 'Tahsilat', Ikon: IkonTahsilat },
   { yol: '/raporlar', ad: 'Raporlar', kisaAd: 'Rapor', Ikon: IkonRapor },

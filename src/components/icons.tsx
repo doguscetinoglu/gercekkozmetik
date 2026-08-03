@@ -95,6 +95,15 @@ export const IkonCikis = (p: IkonProps) => (
   </Ikon>
 )
 
+/** Temsilci uyarısı — exclamationmark.bubble (konuşulacak cari) */
+export const IkonUyari = (p: IkonProps) => (
+  <Ikon {...p}>
+    <path d="M20.5 12.4c0 4.03-3.8 7.3-8.5 7.3-.9 0-1.77-.12-2.58-.34l-5.42 1.14 1.5-4.03A6.86 6.86 0 0 1 3.5 12.4c0-4.03 3.8-7.3 8.5-7.3s8.5 3.27 8.5 7.3Z" />
+    <path d="M12 8.9v3.6" />
+    <path d="M12 15.35h.01" />
+  </Ikon>
+)
+
 /** İndirme — arrow.down.circle (PDF butonları) */
 export const IkonIndir = (p: IkonProps) => (
   <Ikon {...p}>

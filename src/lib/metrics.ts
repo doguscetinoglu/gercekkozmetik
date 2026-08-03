@@ -31,6 +31,8 @@ export type BildirimBenzeri = {
   gonderimZamani: Date
   /** Gönderim anındaki gecikme günü; aralık bazlı etkinlik analizinde gerekir. */
   gonderimdekiGecikmeGunu?: number
+  /** Teslim durumu; "ulaşılamıyor" uyarısında gerekir. */
+  durum?: string
 }
 
 export const gunFarki = (a: Date, b: Date) =>
@@ -57,6 +59,34 @@ export function gecikmeGunu(f: FaturaBenzeri, tarih: Date = BUGUN): number {
 export function odemeGecikmesi(f: FaturaBenzeri): number | null {
   if (!f.kapanmaTarihi) return null
   return gunFarki(f.kapanmaTarihi, f.vadeTarihi)
+}
+
+/**
+ * Tahsilat listesinin gecikme filtresi.
+ *
+ * Buradaki gecikme, açık faturanın bugüne göre gecikmesi DEĞİL; ödemenin ilgili
+ * faturanın vadesinden kaç gün sonra yapıldığıdır. Aralıklar tek yerde durur —
+ * ekrandaki seçenek listesi de, süzme koşulu da bu diziden beslenir.
+ */
+export const ODEME_GECIKME_ARALIKLARI = [
+  { deger: '', etiket: 'Tümü' },
+  { deger: 'vadesinde', etiket: 'Vadesinde ödendi' },
+  { deger: '1-30', etiket: '1-30 gün geç' },
+  { deger: '31-60', etiket: '31-60 gün geç' },
+  { deger: '60+', etiket: '60+ gün geç' },
+] as const
+
+/** `gecikme` null ise ödeme bir faturaya bağlanmamıştır (serbest tahsilat). */
+export function odemeGecikmeUyuyor(gecikme: number | null, aralik: string): boolean {
+  if (!aralik) return true
+  if (gecikme === null) return false
+  switch (aralik) {
+    case 'vadesinde': return gecikme <= 0
+    case '1-30': return gecikme >= 1 && gecikme <= 30
+    case '31-60': return gecikme >= 31 && gecikme <= 60
+    case '60+': return gecikme > 60
+    default: return true
+  }
 }
 
 // ─────────────────────────── Yaşlandırma ───────────────────────────
@@ -302,4 +332,217 @@ export function vadeUyumOrani(faturalar: FaturaBenzeri[]): number {
   if (kapanan.length === 0) return 0
   const zamaninda = kapanan.filter((f) => (odemeGecikmesi(f) ?? 0) <= 0).length
   return Math.round((zamaninda / kapanan.length) * 1000) / 10
+}
+
+// ──────────────────────────── Temsilci uyarıları ────────────────────────────
+/**
+ * Satış temsilcisine "kime, neden dokunmalısın" diyen katman.
+ *
+ * Yaşlandırma raporu PARAYI anlatır; bu katman DAVRANIŞI anlatır — bir cari
+ * yalnızca geciktiği için değil, limitini aştığı, aylardır ödeme yapmadığı ya da
+ * gönderilen bildirimlere hiç dönmediği için de uyarı üretebilir. Temsilci sahada
+ * tabloyu değil bu listeyi okur.
+ *
+ * Eşikler tek yerde: ekrandaki "kural" kartı da bu sabitleri yazar, yani ekranda
+ * anlatılan kuralla kodda çalışan kural ayrışamaz.
+ */
+export const UYARI_ESIK = {
+  /** Bu günden fazla gecikme kritik sayılır. */
+  kritikGecikme: 60,
+  /** Bu günden fazla gecikme yüksek öncelikli sayılır. */
+  yuksekGecikme: 30,
+  /** Açık bakiyesi olan cariden bu kadar gündür tahsilat yoksa "sessiz". */
+  sessizlikGunu: 45,
+  /** Son bu kadar bildirim içinde… */
+  sonBildirimPenceresi: 5,
+  /** …bu kadarı iletilemediyse/cevapsız kaldıysa "ulaşılamıyor". */
+  ulasilamamaAdedi: 2,
+  /** Son bu kadar gün içinde… */
+  sonucsuzPencere: 30,
+  /** …bu kadar bildirim gidip hiç tahsilat gelmediyse "bildirim sonuç vermiyor". */
+  sonucsuzBildirim: 3,
+  /** Vadesine bu kadar gün kalan fatura proaktif hatırlatma sebebidir. */
+  vadeYaklasmaGunu: 7,
+} as const
+
+export type UyariSinif = 'crit' | 'alert' | 'warn' | 'ok'
+
+export type UyariSebep = {
+  kod: 'gecikme' | 'limit' | 'sessizlik' | 'sonucsuz' | 'ulasilamiyor' | 'vade'
+  etiket: string
+  detay: string
+  sinif: UyariSinif
+}
+
+/** Seviye sırası — listeyi ve sayaçları bu sıra yönetir. */
+const SEVIYE_AGIRLIK: Record<UyariSinif, number> = { crit: 4, alert: 3, warn: 2, ok: 1 }
+
+export const SEVIYE_ADI: Record<UyariSinif, string> = {
+  crit: 'Kritik',
+  alert: 'Yüksek',
+  warn: 'İzlemede',
+  ok: 'Bilgi',
+}
+
+export type UyariGirdisi = {
+  krediLimiti: number
+  faturalar: FaturaBenzeri[]
+  /** Cariye ait bildirimler — tarih sırası önemsiz, fonksiyon kendi sıralar. */
+  bildirimler: BildirimBenzeri[]
+  sonTahsilat: Date | null
+}
+
+export type Uyari = {
+  seviye: UyariSinif
+  /** Sıralama anahtarı: en ağır sebep × 100 + sebep sayısı. */
+  skor: number
+  sebepler: UyariSebep[]
+  acikBakiye: number
+  vadesiGecen: number
+  enYuksekGecikme: number
+  limitAsimi: number
+  sessizGun: number | null
+}
+
+/** Bir carinin uyarı sebeplerini çıkarır. Sebep yoksa boş liste döner. */
+export function cariUyarisi(girdi: UyariGirdisi, tarih: Date = BUGUN): Uyari {
+  const { faturalar, bildirimler, krediLimiti, sonTahsilat } = girdi
+  const ozet = bakiyeOzeti(faturalar, tarih)
+  const enYuksekGecikme = faturalar.reduce((m, f) => Math.max(m, gecikmeGunu(f, tarih)), 0)
+  const limitAsimi = Math.max(0, ozet.acikBakiye - krediLimiti)
+  const sessizGun = sonTahsilat ? gunFarki(tarih, sonTahsilat) : null
+
+  const sebepler: UyariSebep[] = []
+
+  // 1) Gecikme — uyarının omurgası.
+  if (enYuksekGecikme > 0) {
+    const sinif = riskSinifi(enYuksekGecikme)
+    sebepler.push({
+      kod: 'gecikme',
+      etiket: `${enYuksekGecikme} gün gecikme`,
+      detay: `${ozet.vadesiGecenAdedi} fatura vadesini geçti; en eskisi ${enYuksekGecikme} gündür açık.`,
+      sinif,
+    })
+  }
+
+  // 2) Kredi limiti aşımı. Gecikmeyle birleştiğinde tek başına olduğundan daha
+  //    ağırdır: hem para geride hem de yeni sevkiyat riski var.
+  if (limitAsimi > 0) {
+    sebepler.push({
+      kod: 'limit',
+      etiket: 'Kredi limiti aşıldı',
+      detay: `Açık bakiye limiti ${Math.round(limitAsimi).toLocaleString('tr-TR')} ₺ aşıyor. Yeni sevkiyat öncesi tahsilat gerekir.`,
+      sinif: enYuksekGecikme > UYARI_ESIK.yuksekGecikme ? 'crit' : 'alert',
+    })
+  }
+
+  // 3) Sessizlik — açık bakiyesi varken uzun süredir ödeme yapmayan cari.
+  if (ozet.acikBakiye > 0 && (sessizGun === null || sessizGun >= UYARI_ESIK.sessizlikGunu)) {
+    sebepler.push({
+      kod: 'sessizlik',
+      etiket: sessizGun === null ? 'Hiç tahsilat yok' : `${sessizGun} gündür tahsilat yok`,
+      detay:
+        sessizGun === null
+          ? 'Bu cariden kayıtlı hiç tahsilat bulunmuyor.'
+          : `Son tahsilat ${sessizGun} gün önce. Açık bakiye bu süre boyunca kapanmadı.`,
+      sinif: 'warn',
+    })
+  }
+
+  // 4) Bildirim sonuç vermiyor — otomatik sistem devrede ama para gelmiyor.
+  //    Bu, "artık insan dokunuşu gerekiyor" sinyalidir; ekranın varlık sebebi.
+  const pencereBasi = new Date(tarih.getTime() - UYARI_ESIK.sonucsuzPencere * GUN_MS)
+  const pencereBildirim = bildirimler.filter((b) => b.gonderimZamani >= pencereBasi).length
+  const pencereSessiz = sonTahsilat === null || sonTahsilat < pencereBasi
+  if (
+    ozet.vadesiGecen > 0 &&
+    pencereBildirim >= UYARI_ESIK.sonucsuzBildirim &&
+    pencereSessiz
+  ) {
+    sebepler.push({
+      kod: 'sonucsuz',
+      etiket: `${pencereBildirim} bildirim sonuçsuz`,
+      detay: `Son ${UYARI_ESIK.sonucsuzPencere} günde ${pencereBildirim} hatırlatma gönderildi, karşılığında tahsilat gelmedi.`,
+      sinif: 'alert',
+    })
+  }
+
+  // 5) Ulaşılamıyor — iletişim bilgisi bozuk olabilir; temsilci yerinde doğrular.
+  const sonBildirimler = [...bildirimler]
+    .sort((a, b) => b.gonderimZamani.getTime() - a.gonderimZamani.getTime())
+    .slice(0, UYARI_ESIK.sonBildirimPenceresi)
+  const ulasilamayan = sonBildirimler.filter(
+    (b) => b.durum === 'BASARISIZ' || b.durum === 'CEVAPSIZ',
+  ).length
+  if (ulasilamayan >= UYARI_ESIK.ulasilamamaAdedi) {
+    sebepler.push({
+      kod: 'ulasilamiyor',
+      etiket: 'Ulaşılamıyor',
+      detay: `Son ${sonBildirimler.length} bildirimin ${ulasilamayan} tanesi iletilemedi veya cevapsız kaldı. Telefon/e-posta bilgisi teyit edilmeli.`,
+      sinif: 'warn',
+    })
+  }
+
+  // 6) Vadesi yaklaşan fatura — uyarı değil, proaktif hatırlatma fırsatı.
+  const yaklasan = faturalar.filter((f) => {
+    if (f.durum === 'ODENDI') return false
+    const kalan = gunFarki(f.vadeTarihi, tarih)
+    return kalan >= 0 && kalan <= UYARI_ESIK.vadeYaklasmaGunu
+  })
+  if (yaklasan.length > 0) {
+    const tutar = yaklasan.reduce((t, f) => t + kalanBakiye(f), 0)
+    const enYakin = Math.min(...yaklasan.map((f) => gunFarki(f.vadeTarihi, tarih)))
+    sebepler.push({
+      kod: 'vade',
+      etiket: `${enYakin} gün içinde vade`,
+      detay: `${yaklasan.length} faturanın vadesi ${UYARI_ESIK.vadeYaklasmaGunu} gün içinde doluyor (${Math.round(tutar).toLocaleString('tr-TR')} ₺). Vade gününden önce hatırlatmak gecikmeyi baştan engeller.`,
+      sinif: 'ok',
+    })
+  }
+
+  const seviye = sebepler.reduce<UyariSinif>(
+    (en, s) => (SEVIYE_AGIRLIK[s.sinif] > SEVIYE_AGIRLIK[en] ? s.sinif : en),
+    'ok',
+  )
+
+  return {
+    seviye,
+    skor: sebepler.length === 0 ? 0 : SEVIYE_AGIRLIK[seviye] * 100 + sebepler.length,
+    sebepler,
+    acikBakiye: ozet.acikBakiye,
+    vadesiGecen: ozet.vadesiGecen,
+    enYuksekGecikme,
+    limitAsimi,
+    sessizGun,
+  }
+}
+
+/**
+ * Temsilcinin ağzından çıkacak tek cümlelik aksiyon.
+ *
+ * Ekran "şu cari riskli" demekle yetinmez, NE YAPILACAĞINI söyler — sahadaki
+ * kişi rakamı yorumlamak zorunda kalmasın diye.
+ */
+export function uyariAksiyonu(uyari: Uyari): string {
+  const kodlar = new Set(uyari.sebepler.map((s) => s.kod))
+
+  if (kodlar.has('ulasilamiyor')) {
+    return 'Önce iletişim bilgisini teyit et; hatırlatmalar cariye ulaşmıyor.'
+  }
+  if (uyari.seviye === 'crit') {
+    return 'Bugün yüz yüze görüş, yazılı ödeme planı al; plan çıkmazsa sevkiyatı durdur.'
+  }
+  if (kodlar.has('limit')) {
+    return 'Yeni sipariş almadan önce limiti bakiyenin altına indirecek tahsilatı iste.'
+  }
+  if (kodlar.has('sonucsuz')) {
+    return 'Otomatik hatırlatma işe yaramıyor; telefonla ara ve ödeme tarihini kayda geçir.'
+  }
+  if (kodlar.has('sessizlik')) {
+    return 'Ziyaret planla; uzun süredir ödeme yok, sebebini yerinde öğren.'
+  }
+  if (kodlar.has('gecikme')) {
+    return 'Bu hafta içinde ara, gecikmiş faturalar için tarih al.'
+  }
+  return 'Vadeden önce hatırlat; gecikmeye düşmeden kapanması muhtemel.'
 }

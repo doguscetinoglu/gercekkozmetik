@@ -14,9 +14,12 @@ import type { YaslandirmaSatiri } from '@/lib/metrics'
 export default function RiskBand({
   kovalar,
   tabloGoster = true,
+  dar = false,
 }: {
   kovalar: YaslandirmaSatiri[]
   tabloGoster?: boolean
+  /** Dar sütunda (yan panel) tek kolona düşer — etiketler kırpılmasın diye. */
+  dar?: boolean
 }) {
   const toplam = kovalar.reduce((t, k) => t + k.tutar, 0)
   const dolu = kovalar.filter((k) => k.tutar > 0)
@@ -43,7 +46,11 @@ export default function RiskBand({
       </div>
 
       {/* Gösterge — renk noktası + etiket + tutar + pay */}
-      <ul className="mt-4 grid gap-x-6 gap-y-2.5 sm:grid-cols-2 lg:grid-cols-3">
+      <ul
+        className={`mt-4 grid gap-x-6 gap-y-2.5 ${
+          dar ? '' : 'sm:grid-cols-2 lg:grid-cols-3'
+        }`}
+      >
         {dolu.map((kova) => (
           <li key={kova.anahtar} className="flex items-baseline gap-2">
             <span

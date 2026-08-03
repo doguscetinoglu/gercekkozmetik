@@ -3,14 +3,19 @@ import { prisma } from './prisma'
 import { BUGUN } from './brand'
 import {
   bakiyeOzeti,
+  cariUyarisi,
   gecikmeGunu,
   gunFarki,
   kalanBakiye,
   kanalEtkinligi,
   odemeGecikmesi,
+  odemeGecikmeUyuyor,
   tahsilatAtiflari,
+  uyariAksiyonu,
   vadeUyumOrani,
   yaslandirma,
+  type Uyari,
+  type UyariSinif,
 } from './metrics'
 
 /**
@@ -275,6 +280,94 @@ export async function filtreSecenekleri() {
   }
 }
 
+// ─────────────────────────── Temsilci uyarı ekranı ───────────────────────────
+
+export type UyariSatiri = {
+  id: string
+  kod: string
+  ad: string
+  sehir: string
+  segment: string
+  temsilci: string
+  telefon: string
+  krediLimiti: number
+  sonBildirim: Date | null
+  sonTahsilat: Date | null
+  aksiyon: string
+} & Uyari
+
+export async function temsilciUyarilari(temsilci?: string) {
+  const [cariler, faturalar, tahsilatlar, bildirimler] = await Promise.all([
+    prisma.customer.findMany({ orderBy: { kod: 'asc' } }),
+    tumFaturalar(),
+    tumTahsilatlar(),
+    tumBildirimler(),
+  ])
+
+  const faturaGrup = grupla(faturalar, (f) => f.customerId)
+  const tahsilatGrup = grupla(tahsilatlar, (t) => t.customerId)
+  const bildirimGrup = grupla(bildirimler, (b) => b.customerId)
+
+  const portfoy = temsilci ? cariler.filter((c) => c.temsilci === temsilci) : cariler
+
+  const satirlar: UyariSatiri[] = portfoy
+    .map((c) => {
+      const cf = faturaGrup.get(c.id) ?? []
+      const ct = tahsilatGrup.get(c.id) ?? []
+      const cb = bildirimGrup.get(c.id) ?? []
+
+      const sonTahsilat = ct.reduce<Date | null>(
+        (en, t) => (!en || t.odemeTarihi > en ? t.odemeTarihi : en),
+        null,
+      )
+      const sonBildirim = cb.reduce<Date | null>(
+        (en, b) => (!en || b.gonderimZamani > en ? b.gonderimZamani : en),
+        null,
+      )
+
+      const uyari = cariUyarisi({
+        krediLimiti: Number(c.krediLimiti),
+        faturalar: cf,
+        bildirimler: cb,
+        sonTahsilat,
+      })
+
+      return {
+        id: c.id,
+        kod: c.kod,
+        ad: c.ad,
+        sehir: c.sehir,
+        segment: c.segment,
+        temsilci: c.temsilci,
+        telefon: c.telefon,
+        krediLimiti: Number(c.krediLimiti),
+        sonBildirim,
+        sonTahsilat,
+        aksiyon: uyariAksiyonu(uyari),
+        ...uyari,
+      }
+    })
+    // Sebebi olmayan cari listeye girmez: uyarı ekranı "her şeyin listesi" değil,
+    // temsilcinin bugün dokunacağı carilerin listesidir.
+    .filter((s) => s.sebepler.length > 0)
+    .sort((a, b) => b.skor - a.skor || b.vadesiGecen - a.vadesiGecen)
+
+  const portfoyFaturalari = portfoy.flatMap((c) => faturaGrup.get(c.id) ?? [])
+
+  const sayimlar = { crit: 0, alert: 0, warn: 0, ok: 0 } as Record<UyariSinif, number>
+  for (const s of satirlar) sayimlar[s.seviye] += 1
+
+  return {
+    temsilci: temsilci ?? null,
+    portfoyAdedi: portfoy.length,
+    satirlar,
+    sayimlar,
+    ozet: bakiyeOzeti(portfoyFaturalari),
+    kovalar: yaslandirma(portfoyFaturalari),
+    limitAsanAdedi: satirlar.filter((s) => s.limitAsimi > 0).length,
+  }
+}
+
 // ────────────────────────────── Cari detay ──────────────────────────────
 
 export async function cariDetay(id: string) {
@@ -386,35 +479,55 @@ export async function bildirimSayfasi(opts: {
 
 export async function tahsilatSayfasi(opts: {
   yontem?: string
+  temsilci?: string
+  /** Cari kodu veya adında geçen metin. */
+  cari?: string
+  /** ODEME_GECIKME_ARALIKLARI değerlerinden biri. */
+  gecikme?: string
   sayfa?: number
   sayfaBoyu?: number
 }) {
   const sayfaBoyu = opts.sayfaBoyu ?? 50
   const sayfa = Math.max(1, opts.sayfa ?? 1)
-  const where = opts.yontem ? { yontem: opts.yontem as never } : {}
 
-  const [kayitlar, toplam, hepsi] = await Promise.all([
-    prisma.payment.findMany({
-      where,
-      orderBy: { odemeTarihi: 'desc' },
-      skip: (sayfa - 1) * sayfaBoyu,
-      take: sayfaBoyu,
-      include: {
-        customer: { select: { kod: true, ad: true } },
-        invoice: { select: { faturaNo: true, vadeTarihi: true } },
-      },
-    }),
-    prisma.payment.count({ where }),
-    tumTahsilatlar(),
-  ])
+  // Süzme ve sayfalama BELLEKTE yapılır. Sebep: gecikme filtresi ödeme tarihini
+  // ilişkili faturanın vade tarihiyle karşılaştırır; Prisma bunu where içinde
+  // ifade edemez. Tek kayıt kümesi üzerinden süzmek, filtrelerin bir kısmını
+  // SQL'de bir kısmını bellekte çalıştırıp sayfalamayı bozmaktan iyidir.
+  const kayitlar = await prisma.payment.findMany({
+    orderBy: { odemeTarihi: 'desc' },
+    include: {
+      customer: { select: { kod: true, ad: true, temsilci: true } },
+      invoice: { select: { faturaNo: true, vadeTarihi: true } },
+    },
+  })
 
-  // Yönteme göre dağılım (tüm dönem)
+  const hepsi = kayitlar.map((k) => ({
+    ...k,
+    tutar: Number(k.tutar),
+    // Ödemenin vadeden kaç gün sonra yapıldığı; faturasız tahsilatta null.
+    gecikme: k.invoice ? gunFarki(k.odemeTarihi, k.invoice.vadeTarihi) : null,
+  }))
+
+  const arama = (opts.cari ?? '').trim().toLocaleLowerCase('tr-TR')
+  const suzulmus = hepsi
+    .filter((t) => !opts.yontem || t.yontem === opts.yontem)
+    .filter((t) => !opts.temsilci || t.customer.temsilci === opts.temsilci)
+    .filter(
+      (t) =>
+        !arama ||
+        t.customer.ad.toLocaleLowerCase('tr-TR').includes(arama) ||
+        t.customer.kod.toLocaleLowerCase('tr-TR').includes(arama),
+    )
+    .filter((t) => odemeGecikmeUyuyor(t.gecikme, opts.gecikme ?? ''))
+
+  // Yönteme göre dağılım ve günlük seyir TÜM dönemi anlatır; kayıt listesi
+  // filtresi bu iki bloğu daraltmaz — üstteki özet sabit kalsın diye.
   const yontemHarita = new Map<string, { adet: number; tutar: number }>()
-  const tumKayitlar = await prisma.payment.findMany({ select: { yontem: true, tutar: true } })
-  for (const t of tumKayitlar) {
+  for (const t of hepsi) {
     const mevcut = yontemHarita.get(t.yontem) ?? { adet: 0, tutar: 0 }
     mevcut.adet += 1
-    mevcut.tutar += Number(t.tutar)
+    mevcut.tutar += t.tutar
     yontemHarita.set(t.yontem, mevcut)
   }
 
@@ -428,8 +541,10 @@ export async function tahsilatSayfasi(opts: {
   }))
 
   return {
-    kayitlar: kayitlar.map((k) => ({ ...k, tutar: Number(k.tutar) })),
-    toplam,
+    kayitlar: suzulmus.slice((sayfa - 1) * sayfaBoyu, sayfa * sayfaBoyu),
+    toplam: suzulmus.length,
+    /** Süzülmüş kümenin tamamının toplamı — sayfa toplamıyla karıştırılmamalı. */
+    suzulmusToplam: suzulmus.reduce((t, x) => t + x.tutar, 0),
     sayfa,
     sayfaBoyu,
     yontemler: [...yontemHarita.entries()]
@@ -437,6 +552,7 @@ export async function tahsilatSayfasi(opts: {
       .sort((a, b) => b.tutar - a.tutar),
     gunluk,
     genelToplam: hepsi.reduce((t, x) => t + x.tutar, 0),
+    kayitAdedi: hepsi.length,
   }
 }
 

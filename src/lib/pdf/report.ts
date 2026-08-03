@@ -306,10 +306,14 @@ export async function raporIndir(rapor: PdfRapor): Promise<void> {
         fillColor: false,
       },
       // Rakam sütunları: sağa yaslı + mono font.
+      //
+      // Mono YALNIZCA gövdeye uygulanır. Başlık ve toplam satırı bold basılıyor,
+      // PlexMono'nun bold varyantı ise kayıtlı değil — mono istenirse jsPDF
+      // sessizce çekirdek fonta düşüyor ve ₺ işareti "º" olarak çıkıyordu.
       didParseCell: (veri) => {
         const sutun = veri.column.index
         if (sagSet.has(sutun)) veri.cell.styles.halign = 'right'
-        if (monoSet.has(sutun) && veri.section !== 'head') {
+        if (monoSet.has(sutun) && veri.section === 'body') {
           veri.cell.styles.font = FONT_MONO
         }
       },

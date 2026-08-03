@@ -8,7 +8,15 @@
  * Kullanım: npx tsx scripts/tutarlilik-kontrol.mts
  */
 import 'dotenv/config'
-import { dashboardVerisi, etkinlikRaporu, yaslandirmaRaporu, performansRaporu } from '../src/lib/queries'
+import {
+  dashboardVerisi,
+  etkinlikRaporu,
+  filtreSecenekleri,
+  yaslandirmaRaporu,
+  performansRaporu,
+  tahsilatSayfasi,
+  temsilciUyarilari,
+} from '../src/lib/queries'
 
 let hata = 0
 
@@ -24,6 +32,7 @@ const panel = await dashboardVerisi()
 const yasl = await yaslandirmaRaporu()
 const etki = await etkinlikRaporu('2026-07-01', '2026-07-30')
 const perf = await performansRaporu('2026-07-01', '2026-07-30')
+const uyariTum = await temsilciUyarilari()
 
 // 1) Yaşlandırma kovalarının toplamı açık bakiyeye eşit olmalı
 const kovaToplam = panel.kovalar.reduce((t, k) => t + k.tutar, 0)
@@ -112,6 +121,49 @@ kontrol(
   'Vade uyumu %0-100 arasında',
   panel.vadeUyumu >= 0 && panel.vadeUyumu <= 100,
   `%${panel.vadeUyumu}`,
+)
+
+// 11) Uyarı ekranı: temsilci kırılımlarının toplamı genel listeye eşit olmalı.
+//     Portföy filtresi cariyi eleyip uyarıyı elemezse buradan görünür.
+const temsilciAdlari = [...new Set(uyariTum.satirlar.map((s) => s.temsilci))]
+const uyariKirilim = await Promise.all(temsilciAdlari.map((t) => temsilciUyarilari(t)))
+const kirilimAdedi = uyariKirilim.reduce((t, u) => t + u.satirlar.length, 0)
+kontrol(
+  'Uyarı: temsilci kırılımı = genel uyarı listesi',
+  kirilimAdedi === uyariTum.satirlar.length,
+  `kırılım ${kirilimAdedi} ≠ genel ${uyariTum.satirlar.length}`,
+)
+
+// 12) Uyarı listesindeki vadesi geçen tutar, portföyün vadesi geçen tutarını
+//     aşamaz — aşıyorsa bir cari birden fazla kez listeye girmiş demektir.
+const uyariGecen = uyariTum.satirlar.reduce((t, s) => t + s.vadesiGecen, 0)
+kontrol(
+  'Uyarı: vadesi geçen ≤ genel vadesi geçen',
+  uyariGecen <= panel.ozet.vadesiGecen + 1,
+  `uyarı ${uyariGecen} > panel ${panel.ozet.vadesiGecen}`,
+)
+
+// 13) Tahsilat listesi filtresi: temsilci kırılımlarının toplamı tüm kayıtlara
+//     eşit olmalı. Süzme ile sayfalama bellekte yapıldığı için bu kontrol,
+//     filtrenin kayıt düşürmediğini/çoğaltmadığını doğrular.
+const { temsilciler } = await filtreSecenekleri()
+const tahsilatKirilim = await Promise.all(
+  temsilciler.map((t) => tahsilatSayfasi({ temsilci: t, sayfaBoyu: 1 })),
+)
+const kirilimTutar = tahsilatKirilim.reduce((t, x) => t + x.suzulmusToplam, 0)
+const tumTahsilat = await tahsilatSayfasi({ sayfaBoyu: 1 })
+kontrol(
+  'Tahsilat: temsilci filtresi kırılımı = genel toplam',
+  yakin(kirilimTutar, tumTahsilat.genelToplam) &&
+    tahsilatKirilim.reduce((t, x) => t + x.toplam, 0) === tumTahsilat.kayitAdedi,
+  `kırılım ${kirilimTutar} ≠ genel ${tumTahsilat.genelToplam}`,
+)
+
+// 14) Sebepsiz cari listeye girmemeli; her satırın seviyesi bir sebepten gelir.
+kontrol(
+  'Uyarı: her satırın en az bir sebebi var',
+  uyariTum.satirlar.every((s) => s.sebepler.length > 0 && s.skor > 0),
+  'sebepsiz satır var',
 )
 
 console.log(
