@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import PageHeader, { SectionHeader } from '@/components/PageHeader'
-import { BUGUN } from '@/lib/brand'
+import { BUGUN, MARKA } from '@/lib/brand'
 import { gunAnahtari } from '@/lib/format'
 import {
   etkinlikRaporu,
@@ -13,7 +13,7 @@ import YaslandirmaRapor from './YaslandirmaRapor'
 import EtkinlikRapor from './EtkinlikRapor'
 import PerformansRapor from './PerformansRapor'
 
-export const metadata = { title: 'Raporlar — Gerçek Kozmetik' }
+export const metadata = { title: `Raporlar — ${MARKA.sistem}` }
 
 const RAPORLAR = [
   { anahtar: 'gunluk', ad: 'Günlük Faaliyet', aciklama: 'Seçilen günde kaç hatırlatma gitti, kaç ödeme geldi' },

@@ -21,7 +21,7 @@ export default async function GirisSayfasi() {
             {MARKA.kisaKod}
           </span>
           <h1 className="baslik-buyuk mt-5">{MARKA.firma}</h1>
-          <p className="ikincil mt-1.5">Nakit &amp; Tahsilat Kontrol Sistemi</p>
+          <p className="ikincil mt-1.5">{MARKA.sistem}</p>
         </div>
 
         <div className="kart mt-7 p-6">

@@ -2,13 +2,13 @@ import Link from 'next/link'
 import Kpi, { KpiKusak } from '@/components/Kpi'
 import PageHeader from '@/components/PageHeader'
 import PdfButton from '@/components/PdfButton'
-import { BUGUN } from '@/lib/brand'
+import { BUGUN, MARKA } from '@/lib/brand'
 import { sayi, segmentAdi, tarih, tarihAcik, tl, tlKisa } from '@/lib/format'
 import { riskSinifi } from '@/lib/metrics'
 import { cariOzetleri, filtreSecenekleri, type CariOzet } from '@/lib/queries'
 import type { PdfRapor } from '@/lib/pdf/report'
 
-export const metadata = { title: 'Cari Hesaplar — Gerçek Kozmetik' }
+export const metadata = { title: `Cari Hesaplar — ${MARKA.sistem}` }
 
 const SEGMENTLER = ['BAYI', 'ZINCIR', 'ECZANE', 'ONLINE', 'IHRACAT'] as const
 

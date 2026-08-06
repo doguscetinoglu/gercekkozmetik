@@ -1,4 +1,4 @@
-# Gerçek Kozmetik — Doğal Katkı
+# Gerçek Kozmetik — Doğal Katkı Tahsilat Kontrol
 
 Cari hesap bakiyelerinin vade durumunu, gönderilen bilgilendirmeleri ve gelen tahsilatları
 raporlayan kontrol paneli.

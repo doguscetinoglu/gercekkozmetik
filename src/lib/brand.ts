@@ -4,8 +4,8 @@
  */
 export const MARKA = {
   firma: 'Gerçek Kozmetik',
-  sistem: 'Doğal Katkı',
-  tamAd: 'Gerçek Kozmetik — Doğal Katkı',
+  sistem: 'Doğal Katkı Tahsilat Kontrol',
+  tamAd: 'Gerçek Kozmetik — Doğal Katkı Tahsilat Kontrol',
   kisaKod: 'GK',
 } as const
 
@@ -13,7 +13,7 @@ export const MARKA = {
  * Satış temsilcisi uyarı ekranının adı. Ekran adı tek yerde durur — menü, sayfa
  * başlığı ve PDF hep buradan okur.
  *
- * Sistemin adı "Doğal Katkı" olduğu için bu ekran sistem adını taşımaz; menüde
+ * Sistemin adı "Doğal Katkı Tahsilat Kontrol" olduğu için bu ekran sistem adını taşımaz; menüde
  * ne yaptığıyla anılır.
  */
 export const UYARI_EKRANI = {

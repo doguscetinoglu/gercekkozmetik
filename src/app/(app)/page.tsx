@@ -4,13 +4,13 @@ import PageHeader, { SectionHeader } from '@/components/PageHeader'
 import PdfButton from '@/components/PdfButton'
 import RiskBand from '@/components/RiskBand'
 import SeyirGrafigi from '@/components/SeyirGrafigi'
-import { BUGUN } from '@/lib/brand'
+import { BUGUN, MARKA } from '@/lib/brand'
 import { kanalAdi, sayi, tarih, tarihAcik, tl, tlKisa, yuzde } from '@/lib/format'
 import { riskSinifi } from '@/lib/metrics'
 import { dashboardVerisi } from '@/lib/queries'
 import type { PdfRapor } from '@/lib/pdf/report'
 
-export const metadata = { title: 'Panel — Gerçek Kozmetik' }
+export const metadata = { title: `Panel — ${MARKA.sistem}` }
 
 export default async function Panel() {
   const v = await dashboardVerisi()

@@ -3,12 +3,12 @@ import Link from 'next/link'
 import Kpi, { KpiKusak } from '@/components/Kpi'
 import PageHeader, { SectionHeader } from '@/components/PageHeader'
 import PdfButton from '@/components/PdfButton'
-import { BUGUN } from '@/lib/brand'
+import { BUGUN, MARKA } from '@/lib/brand'
 import { durumAdi, kanalAdi, saat, sayi, tarih, tarihAcik } from '@/lib/format'
 import { bildirimSayfasi } from '@/lib/queries'
 import type { PdfRapor } from '@/lib/pdf/report'
 
-export const metadata = { title: 'Bildirimler — Gerçek Kozmetik' }
+export const metadata = { title: `Bildirimler — ${MARKA.sistem}` }
 
 const KANALLAR = ['SMS', 'WHATSAPP', 'EMAIL', 'CALL'] as const
 

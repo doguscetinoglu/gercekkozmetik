@@ -2,13 +2,13 @@ import Link from 'next/link'
 import PageHeader, { SectionHeader } from '@/components/PageHeader'
 import Kpi, { KpiKusak } from '@/components/Kpi'
 import PdfButton from '@/components/PdfButton'
-import { BUGUN } from '@/lib/brand'
+import { BUGUN, MARKA } from '@/lib/brand'
 import { sayi, tarih, tarihAcik, tl, tlKisa, yontemAdi, yuzde } from '@/lib/format'
 import { ODEME_GECIKME_ARALIKLARI } from '@/lib/metrics'
 import { filtreSecenekleri, tahsilatSayfasi } from '@/lib/queries'
 import type { PdfRapor } from '@/lib/pdf/report'
 
-export const metadata = { title: 'Tahsilatlar — Gerçek Kozmetik' }
+export const metadata = { title: `Tahsilatlar — ${MARKA.sistem}` }
 
 const YONTEMLER = ['HAVALE', 'KREDI_KARTI', 'CEK', 'NAKIT', 'SENET'] as const
 
