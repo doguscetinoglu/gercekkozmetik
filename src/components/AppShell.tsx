@@ -49,7 +49,7 @@ export default function AppShell({
               {MARKA.firma}
             </span>
             <span className="block truncate text-[0.6875rem] text-label-2">
-              {MARKA.sistem}
+              {MARKA.modul}
             </span>
           </span>
         </Link>

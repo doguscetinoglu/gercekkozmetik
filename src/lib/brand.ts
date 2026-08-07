@@ -3,10 +3,18 @@
  * yalnızca bu dosya değişir.
  */
 export const MARKA = {
-  firma: 'Gerçek Kozmetik',
+  firma: 'Doğal Katkı',
+  /** Kısa modül adı — marka adının yanında tekrar etmesin diye ayrı durur. */
+  modul: 'Tahsilat Kontrol',
   sistem: 'Doğal Katkı Tahsilat Kontrol',
-  tamAd: 'Gerçek Kozmetik — Doğal Katkı Tahsilat Kontrol',
-  kisaKod: 'GK',
+  tamAd: 'Doğal Katkı Tahsilat Kontrol',
+  kisaKod: 'DK',
+} as const
+
+/** Demo girişi — ekranda da yazılı olduğu için tek yerden okunur. */
+export const DEMO_GIRIS = {
+  kullaniciAdi: 'demo',
+  sifre: 'dogal2026',
 } as const
 
 /**

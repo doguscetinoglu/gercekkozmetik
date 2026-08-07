@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { MARKA } from '@/lib/brand'
+import { DEMO_GIRIS, MARKA } from '@/lib/brand'
 import { oturumOku } from '@/lib/session'
 import GirisFormu from './GirisFormu'
 
@@ -21,7 +21,7 @@ export default async function GirisSayfasi() {
             {MARKA.kisaKod}
           </span>
           <h1 className="baslik-buyuk mt-5">{MARKA.firma}</h1>
-          <p className="ikincil mt-1.5">{MARKA.sistem}</p>
+          <p className="ikincil mt-1.5">{MARKA.modul}</p>
         </div>
 
         <div className="kart mt-7 p-6">
@@ -32,8 +32,9 @@ export default async function GirisSayfasi() {
         <div className="grup mt-4">
           <span className="text-[0.8125rem] font-semibold text-label">Demo erişimi</span>
           <p className="ikincil mt-1.5">
-            Kullanıcı adı <strong className="font-semibold text-label">demo</strong> · Şifre{' '}
-            <strong className="font-semibold text-label">kozmetik2026</strong>
+            Kullanıcı adı{' '}
+            <strong className="font-semibold text-label">{DEMO_GIRIS.kullaniciAdi}</strong> · Şifre{' '}
+            <strong className="font-semibold text-label">{DEMO_GIRIS.sifre}</strong>
           </p>
         </div>
 

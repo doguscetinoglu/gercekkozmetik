@@ -1,5 +1,5 @@
 /**
- * Gerçek Kozmetik — demo verisi üretici
+ * Doğal Katkı — demo verisi üretici
  *
  * Bu dosya rastgele gürültü üretmez; gerçek bir tahsilat operasyonunun DAVRANIŞINI
  * modeller. Raporların ("bildirim etkinliği", "yaşlandırma", "ödeme disiplini")
@@ -17,6 +17,7 @@ import 'dotenv/config'
 import { PrismaClient } from '../src/generated/prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import { hash } from 'bcryptjs'
+import { DEMO_GIRIS } from '../src/lib/brand'
 
 const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
@@ -449,10 +450,15 @@ async function main() {
 
   console.log('Yazılıyor:')
 
-  const sifreHash = await hash('kozmetik2026', 10)
+  const sifreHash = await hash(DEMO_GIRIS.sifre, 10)
   await prisma.user.createMany({
     data: [
-      { kullaniciAdi: 'demo', adSoyad: 'Demo Kullanıcı', unvan: 'Finans Müdürü', sifreHash },
+      {
+        kullaniciAdi: DEMO_GIRIS.kullaniciAdi,
+        adSoyad: 'Demo Kullanıcı',
+        unvan: 'Finans Müdürü',
+        sifreHash,
+      },
       { kullaniciAdi: 'dogus', adSoyad: 'Doğuş Çetinoğlu', unvan: 'Sistem Yöneticisi', sifreHash },
     ],
   })

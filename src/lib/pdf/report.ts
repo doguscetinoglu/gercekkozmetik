@@ -134,7 +134,7 @@ function antetCiz(doc: jsPDF, rapor: PdfRapor, genislik: number): number {
   doc.setFont(FONT, 'normal')
   doc.setFontSize(7.5)
   doc.setTextColor(...MUREKKEP_MUTE)
-  doc.text(MARKA.sistem, genislik - KENAR, 18, { align: 'right' })
+  doc.text(MARKA.modul, genislik - KENAR, 18, { align: 'right' })
 
   y += 6
 

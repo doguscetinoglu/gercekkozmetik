@@ -1,4 +1,4 @@
-# Gerçek Kozmetik — Doğal Katkı Tahsilat Kontrol
+# Doğal Katkı Tahsilat Kontrol
 
 Cari hesap bakiyelerinin vade durumunu, gönderilen bilgilendirmeleri ve gelen tahsilatları
 raporlayan kontrol paneli.
@@ -99,4 +99,4 @@ disiplinli cariler bildirimden 1-5 gün sonra öder. Etkinlik raporunun anlamlı
 
 ## Demo erişimi
 
-Kullanıcı adı `demo` · Şifre `kozmetik2026`
+Kullanıcı adı `demo` · Şifre `dogal2026`
